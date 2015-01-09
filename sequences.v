@@ -1,15 +1,5 @@
 (** Real sequences **)
-
-Require Import Rbase.
-Require Import Rfunctions.
-
-Require Import CauchySeq.
-
-Require Import Classical_Prop.
-
-Require Import QArith.
-Open Scope Q_scope.
-Require Import CRtrans.
+Require Export SAMPL.reals.
 
 (**
 * Definitions of the concepts on sequences
@@ -25,29 +15,44 @@ Variable Un : nat->IR.
 
 Section Sequence_Limits.
 
-Open Local Scope Q_scope.
-
-(** 
-Definition of a sequence that converges to a real [l] :
-$$\forall \epsilon > 0, \exists n_0 \in \mathbb{N}, \forall n \geq n_0, |u_n - l| < \epsilon$$
+(**
+Definition of sequence limit :
+- $$u_n$$ converges : $$\lim\limits_{n \to +\infty} u_n = l \in \mathbb{R}$$
+- $$u_n$$ diverges to $$+\infty$$ : $$\lim\limits_{n \to +\infty} u_n = +\infty$$
+- $$u_n$$ diverges to $$-\infty$$ : $$\lim\limits_{n \to +\infty} u_n = -\infty$$
 *)
-Definition Un_convergent (l : IR) : Prop :=
-    forall epsilon : IR, (epsilon [>] [0] -> exists n0 : nat, (forall n : nat, n >= n0 
-        -> AbsSmall epsilon ((Un n) [-] l))).
+
+Inductive Un_limit : Type :=
+    | Un_convergent : IR->Un_limit
+    | Un_divergent_pInf : Un_limit
+    | Un_divergent_mInf : Un_limit.
 
 (**
-Definition of a sequence that diverges to $$+\infty$$ :
-$$\forall A \in \mathbb{R}, \exists n_0 \in \mathbb{N}, \forall n \geq n_0, u_n \geq A$$
+For the three cases, we associate a predicate :
+- $$u_n$$ converges : $$\forall \epsilon > 0, \exists n_0 \in \mathbb{N}, \forall n \geq n_0, |u_n - l| < \epsilon$$
+- $$u_n$$ diverges to $$+\infty$$ : $$\forall A \in \mathbb{R}, \exists n_0 \in \mathbb{N}, \forall n \geq n_0, u_n \geq A$$
+- $$u_n$$ diverges to $$-\infty$$ : $$\forall a \in \mathbb{R}, \exists n_0 \in \mathbb{N}, \forall n \geq n_0, u_n \leq a$$
 *)
-Definition Un_divergent_pInf : Prop :=
-   forall A : IR, (exists n0 : nat, forall n : nat, n >= n0 -> (Un n) [>=] A).
+
+Definition Un_limitProp (L : Un_limit) : Prop :=
+    match L with
+        | Un_convergent l => forall epsilon : IR, (epsilon [>] [0] -> exists n0 : nat, (forall n : nat, n >= n0 
+                -> AbsSmall epsilon ((Un n) [-] l)))
+        | Un_divergent_pInf => forall A : IR, (exists n0 : nat, forall n : nat, n >= n0 -> (Un n) [>=] A)
+        | Un_divergent_mInf => forall a : IR, (exists n0 : nat, (forall n : nat, n >= n0 -> Un n [<=] a))
+    end.
 
 (**
-Definition of a sequence that diverges to $$-\infty$$ :
-$$\forall a \in \mathbb{R}, \exists n_0 \in \mathbb{N}, \forall n \geq n_0, u_n \leq a$$
+$$\lim\limits_{n \to +\infty} u_n \in \overline{\mathbb{R}}$$, so we define an helper 
+to use the limit value ($$\in \overline{\mathbb{R}}$$) with the [IR_inf] type
 *)
-Definition Un_divergente_mInf : Prop :=
-   forall a : IR, (exists n0 : nat, (forall n : nat, n >= n0 -> Un n [<=] a)).
+
+Definition Un_limit_value (L : Un_limit) : IR_inf :=
+    match L with
+        | Un_convergent l => real l
+        | Un_divergent_pInf => pInf
+        | Un_divergent_mInf => mInf
+    end.
 
 End Sequence_Limits.
 
@@ -137,13 +142,11 @@ Admitted.
 
 (** 
 Definition of a subsequence : 
-$$(v_n)$$ is a subsequence if there exist a stricly increasing function 
-$$\phi : \mathbb{N} \rightarrow \mathbb{N}$$
+$$(v_n)$$ is a subsequence if there exist a stricly increasing function $$\phi : \mathbb{N} \rightarrow \mathbb{N}$$
 such that $$\forall n \in \mathbb{N}, v_n = u_{\phi(n)}$$
 *)
 Definition Un_subsequence (Vn : nat->IR) : Prop :=
-    exists (phi : nat->nat), int_strict_increasing_func phi 
-        -> (forall n : nat, (Vn n) [=] (Un (phi n))).
+    exists (phi : nat->nat), int_strict_increasing_func phi -> (forall n : nat, (Vn n) [=] (Un (phi n))).
 
 End SubSequence.
 
