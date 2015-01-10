@@ -114,6 +114,23 @@ Definition limit_value (L : limit) : IR_inf :=
     end.
 
 (**
+** Predicate true at the neighbourhood of $$x_0$$
+*)
+
+(* The predicate [P x] is true at the neighbourhood of $$x_0 \in \overline{\mathbb{R}}$$ if : 
+- $$x_0$$ is finite : $$\exists \delta > 0, \forall x \in \[x_0 - \delta, x_0 + \delta \] \cap I, P(x) \quad \mathrm{true}$$
+- $$x_0 = +\infty$$ : $$\exists a \in \mathbb{R}, \forall x \in \[a, +\infty \[ \cap I, P(x) \quad \mathrm{true}$$
+- $$x_0 = -\infty$$ : $$\exists a \in \mathbb{R}, \forall x \in \]-\infty, a\] \cap I, P(x) \quad \mathrm{true}$$
+*)
+
+Definition predicate_neighbourhood (P : IR->Prop) (x0 : IR_inf) : Prop :=
+    match x0 with
+        | real x => exists d:IR, d [>] [0] -> forall (y : IR), AbsSmall d (y [-] x) -> P x
+        | pInf => exists a:IR,  forall (x : IR), x [>=] a -> P x
+        | mInf => exists a:IR,  forall (x : IR), x [<=] a -> P x
+    end.
+
+(**
 * Theorems
 *)
 
@@ -123,14 +140,41 @@ Sequential characterization of a limit
 
 End Limit_definitions.
 
+(**
+We may use real limits quite often, so here is a notation more "visually" :
+*)
+
+Notation "foo -- x0 --> l" := 
+    (forall L:limit, limitProp foo L -> limit_variable L = x0 -> is_real (limit_value L) l) 
+    (at level 0, x0 at next level) : core_scope.
+
+(**
+* Theorems
+*)
+
+Section Limit_theorems.
+
 Hypothesis x0 : IR_inf.
-Hypothesis l : IR_inf.
+Hypothesis l l' : IR_inf.
 Hypothesis f : CSetoid_un_op IR.
+Hypothesis u v w : CSetoid_un_op IR.
+Hypothesis lr : IR.
 
 Theorem sequential_limit : (forall (L : limit), limitProp f L -> limit_variable L = x0 -> limit_value L = l)
     <-> (forall (Un : nat->IR), forall (L fL : Un_limit), Un_limitProp Un L -> Un_limitProp (fun n => f (Un n)) fL 
         -> Un_limit_value L = x0 -> Un_limit_value fL = l).
 Admitted.
+
+Theorem inequality_limit : forall (L L' : limit), limitProp u L -> limitProp v L' 
+    -> predicate_neighbourhood (fun x => (u x) [<=] (v x)) x0 -> le_IR_inf l l'.
+Admitted.
+
+Theorem squeeze_theorem : (u --x0-->lr) -> (v --x0-->lr)
+    -> predicate_neighbourhood (fun x => ((u x) [<=] (v x)) /\ ((v x) [<=] (w x))) x0
+    -> (v --x0-->lr).
+Admitted.
+
+End Limit_theorems.
 
 (**
 * Applications
@@ -139,6 +183,10 @@ Admitted.
 (**
 ** Appli 1
 *)
+
+Section Appli1.
+
+Variable f : CSetoid_un_op IR.
 
 (**
 If f is a periodic function over [IR], and f has a real limit in #+&infin;#
@@ -161,6 +209,8 @@ Definition constant_function : Prop :=
     assert (f x = f (x[+]zring x0[*]T)) by apply H.
     assert (f y = f (y[+]zring x0[*]T)) by apply H.
 Admitted.*)
+
+End Appli1.
 
 (** 
 ** Appli 2 : Prove that a function has no limit
