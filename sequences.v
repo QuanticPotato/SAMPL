@@ -1,4 +1,3 @@
-(** Real sequences **)
 Require Export SAMPL.reals.
 
 (**
