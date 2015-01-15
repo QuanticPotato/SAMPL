@@ -76,13 +76,13 @@ Definition poly_mult (p q : polynomial) : polynomial :=
         end) p q.
 
 (**
-** ([polynomial K], [plus_poly], [mult_poly]) is a ring
+** ([polynomial K], [plus_poly], [mult_poly]) is an euclidean domain
 In this section, we prove that polynomials form a constructive ring, with the polynomial addition and 
-the polynomial multiplication. This include proving they form a Setoid, a SemiGroup, a Monoid, a Group
-and finally a ring.
+the polynomial multiplication. (This include proving they form a Setoid, a SemiGroup, a Monoid, a Group
+and finally a ring). We then prove that it also form a constructive euclidean domain.
 *)
 
-Section polynomial_ring.
+Section polynomial_euclidean_domain.
 
 (**
 The polynomials form a constructive setoid, with [poly_eq] as equality relation :
@@ -189,11 +189,54 @@ Definition poly_is_CRing := Build_is_CRing poly_as_CAbGroup _ _ poly_mult_is_ass
 
 Definition poly_as_CRing := Build_CRing _ _ _ poly_is_CRing.
 
-End polynomial_ring.
+(**
+The polynomials form a constructive unique factorization domain :
+*)
+
+(* TODO *)
+
+(**
+The polynomials form a constructive euclidean domain :
+*)
+
+(* TODO *)
+
+End polynomial_euclidean_domain.
+
+(**
+We also define a divide relation over polynomials :
+P divide Q if it exists $$R \in K\[X\]$$ such that $$Q = PR$$.
+We note $$P | Q$$.
+*)
+
+Definition poly_divide (P Q : poly_as_CRing) : Prop := exists (R : poly_as_CRing), Q [=] P[*]R.
+
+(** 
+Two polynomials [P] and [Q] are associated if $$P | Q$$ and $$Q | P$$
+*)
+
+Definition poly_associated (P Q : poly_as_CRing) : Prop := (poly_divide P Q) /\ (poly_divide Q P).
+
+
+
+End Polynomials_definitions.
+
+(**
+The notation $$K\[X\]$$ refers to the set of [polynomial K]. 
+In the remainder of this filem $$K$$ is either $$\mathbb{Q}$$, $$\mathbb{R} or $$\mathbb{C}$$
+*)
+
+Notation "K '[X]'" := (poly_as_CRing K) (at level 0).
+
+Notation "( x | y )" := (poly_divide x y) (at level 0).
 
 (**
 ** Properties of polynomials
 *)
+
+Section Polynomials_properties.
+
+Variable K : CRing.
 
 (**
 We define the coefficient of the [n]th degree :
@@ -201,7 +244,7 @@ We define the coefficient of the [n]th degree :
 If the [n] bigger than the polynomial degree, then the [n]th coefficient is the [K]'s neutral element.
 *)
 
-Definition poly_coeff_nth (p : polynomial) (n : nat) : K :=
+Definition poly_coeff_nth (p : K[X]) (n : nat) : K :=
     nth n p [0].
 
 (**
@@ -210,31 +253,54 @@ $$\mathrm{deg}(P) =  = \left\{\begin{tabular}{l} $P=0$ : $max(\{i \in \mathbb{N}
 \\ $P=0$ : $-\infty$ \end{tabular}\right.$$
 *)
 
-Definition poly_degree (p : polynomial) (n : nat_inf) : CProp :=
+Variable t:K[X].
+Variable p : (list K).
+Hypothesis H:t=p.
+
+Definition poly_degree (p : K[X]) (n : nat) : CProp :=
     match p with
         | nil => False
-        | c::p' => (c [#] [0]) and (forall (n' : nat), poly_coeff_nth p n' [=] [0])
+        | cons c p' => (c [#] [0]) and (forall (n' : nat), n' > n -> poly_coeff_nth p n' [=] [0])
     end.
 
-End Polynomials_definitions.
+End Polynomials_properties.
 
-(**
+(**<
 * Theorems
 *)
 
 Section Polynomials_theorems.
 
+Variable K : CRing.
+Variables P Q : K[X].
+
+Variables p q : nat.
+Hypothesis P_degree : poly_degree K P p.
+Hypothesis Q_degree : poly_degree K P q.
+
+Section Polynomials_degree.
+
 (**
-In the following section, we assume the polynomials are non-zero (Unless otherwise stated).
-The polynomial degrees are then finite. (The zero cases are trivial to prove)
+The following theorems make the link between polynomial degrees, and usual polynomial operations
+- $$\mathrm{deg}(P + Q) \leq \mathrm{max} \{ \mathrm{deg}(P), \mathrm{deg}(Q)\}$$
+- Si \mathrm{deg}(P) \neq \mathrm{deg}(Q)$$, then  $$\mathrm{deg}(P + Q) = \mathrm{max} \{ \mathrm{deg}(P), \mathrm{deg}(Q)\}$$
+- $$\mathrm{deg}(PQ) = \mathrm{deg}(P) + \mathrm{deg}(Q)$$
 *)
 
-Variable K : CRing.
-Variables P Q : polynomial K.
+Lemma poly_deg_sum1_non_zero : ~(poly_is_zero K P) -> ~(poly_is_zero K Q) -> 
+    forall (n : nat), poly_degree K (P [+] Q) n -> n <= max p q.
+Admitted.
 
-Variables nP nQ : nat.
-Hypothesis Pdegree : forall (n : nat_inf), poly_degree K P n -> nat_is_finite n nP.
-Hypothesis Qdegree : forall (n : nat_inf), poly_degree K Q n -> nat_is_finite n nQ.
+Lemma poly_deg_sum2_non_zero : ~(poly_is_zero K P) -> ~(poly_is_zero K Q) -> p <> q ->
+    forall (n : nat), poly_degree K (P [+] Q) n -> n = max p q.
+Admitted.
 
-Theorem poly_deg_sum : forall (n : nat_inf), poly_degree K (plus_poly P Q) n 
-    -> forall (n' : nat), nat_is_finite n n' -> 
+Lemma poly_deg_mult_non_zero : ~(poly_is_zero K P) -> ~(poly_is_zero K Q) -> 
+    forall (n : nat), poly_degree K (P [*] Q) n -> n = p + q.
+Admitted.
+
+End Polynomials_degree.
+
+Section Polylnomials_arithmetic.
+
+
