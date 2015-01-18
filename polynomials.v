@@ -1,5 +1,6 @@
-Require Import CoRN.algebra.CRings.
+Require Import CoRN.algebra.CFields.
 
+Require Export SAMPL.structures.
 Require Export SAMPL.lists.
 Require Export SAMPL.integers.
 
@@ -9,7 +10,7 @@ Require Export SAMPL.integers.
 
 Section Polynomials_definitions.
 
-Variable K : CRing.
+Variable K : CField.
 
 (**
 ** Definition of a polynomial and its operations
@@ -217,7 +218,32 @@ Two polynomials [P] and [Q] are associated if $$P | Q$$ and $$Q | P$$
 
 Definition poly_associated (P Q : poly_as_CRing) : Prop := (poly_divide P Q) /\ (poly_divide Q P).
 
+(**
+We define the derivative of a polynomial as follows :
+$$P' = \sum\limits_{k = 1}^n n a_k X^{n - 1}$$
+We then define the [n]th derivative of a polynomial recursively. Mathematically, it would be :
+$$P^{(n)} = \sum\limits_{k = i}^p \left( \prod\limits_{j = 0}^i (k-j) \right) a_k X^{n - n}$$
+*)
+Definition poly_derivative_nth (p : poly_as_CRing)(n : nat) : poly_as_CRing :=
+    (fix loop (i:nat)(q : poly_as_CRing) : poly_as_CRing :=
+        match i with
+            | 0%nat => q
+            | S s => loop s  
+                (* [skipn] shift the list of [n] element to the left << *)
+                (skipn i (list_map_index K (fun (n:nat)(e:K) => (nring n) [*] e) q))
+        end
+    ) n p.
 
+(**
+From a polynomial, we can define a polynomial function, that allows to evaluates the polynomial ($$P(t)$$)
+The evaluation of $$P = \sum\limits_{i \geq 0} c_i X^i$$ in $$t \in \mathbb{K}$$ is : $$P = \sum\limits_{i \geq 0} c_i t^i$$.
+*)
+
+Definition polynomial_function (p : poly_as_CRing) : K->K :=
+    fun (x : K) => (Sum0 (length p) (fun n => (nth n p [0]) [*] (x [^] n))).
+
+Definition poly_eval (p : poly_as_CRing) (t : K) : K :=
+    (Sum0 (length p) (fun n => (nth n p [0]) [*] (t [^] n))).
 
 End Polynomials_definitions.
 
@@ -231,12 +257,19 @@ Notation "K '[X]'" := (poly_as_CRing K) (at level 0).
 Notation "( x | y )" := (poly_divide x y) (at level 0).
 
 (**
+We define a notation for the polynomials evaluation. We use double braces '{ ... }' to avoid any conflicts
+(We also have to give the polynomial coefficients type when evaluating)
+*)
+
+Notation "P { K , t }" := (poly_eval K P t) (at level 0).
+
+(**
 ** Properties of polynomials
 *)
 
 Section Polynomials_properties.
 
-Variable K : CRing.
+Variable K : CField.
 
 (**
 We define the coefficient of the [n]th degree :
@@ -271,7 +304,7 @@ End Polynomials_properties.
 
 Section Polynomials_theorems.
 
-Variable K : CRing.
+Variable K : CField.
 Variables P Q : K[X].
 
 Variables p q : nat.
@@ -296,11 +329,25 @@ Lemma poly_deg_sum2_non_zero : ~(poly_is_zero K P) -> ~(poly_is_zero K Q) -> p <
 Admitted.
 
 Lemma poly_deg_mult_non_zero : ~(poly_is_zero K P) -> ~(poly_is_zero K Q) -> 
-    forall (n : nat), poly_degree K (P [*] Q) n -> n = p + q.
+    forall (n : nat), poly_degree K (P [*] Q) n -> n = (p + q)%nat.
 Admitted.
 
 End Polynomials_degree.
 
-Section Polylnomials_arithmetic.
+Section Polynomials_arithmetic.
+
+End Polynomials_arithmetic.
+
+Require Import Coq.Arith.Factorial.
+
+(**
+We define the Taylor's theorem, to give an approximation of [k] times differentiable 
+function. For now, we only give the polynomials version (Thus, it is an exact approximation) :
+$$P = \sum\limits_{i = 0}^n \frac{P^{(i)}(\alpha)}{i!} (X - \alpha)^i$$ with $$\alpha \in \mathbb{K}$$
+*)
+
+(*Theorem taylor_polynomials : forall (a : K), P [=] (Sum0 p 
+    (fun n =>  ( cf_div (poly_derivative_nth K P n){K, a}) (nring (fact n)) lt_O_fact )
+).*)
 
 
