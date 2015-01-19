@@ -1,3 +1,7 @@
+Require Import ZArith.
+
+Section Functions_definitions.
+
 (**
 * Real functions
 We here deal with partial functions $$I \rightarrow \mathbb{R}$$, where $$I$$ is a subset of $$\mathbb{R}.
@@ -28,10 +32,8 @@ $$f : D_f \rightarrow S$$, with $$D_f \subset S$$.
 the domain predicate) : [(fun x P => )].
 - A proof that the function has strong functional extensionality
 
-The definition PartIR will be a warp for every real functions.
+The definition PartIR wrap for every real functions.
 *)
-
-Definition PartIR := PartFunct IR.
 
 Section domain_predicates.
 
@@ -76,6 +78,24 @@ End domain_predicates.
 
 Section example_function.
 
+Section PartFunct2.
+
+(**
+In this section, we extend thee [PartFunct] definitions for functions with two arguments.
+Each argument has its own definition domain, and there is an extra predicate of the two variables together.
+[S1] and [S2] are the domain of the two variables. [S3] is the codomain.
+*)
+
+Record PartFunct2 (S1 S2 S3 : CSetoid) : Type := {
+    pf2_dom1 : S1 -> CProp;
+    pf2_dom2 : S2 -> CProp;
+    pf2_fun :> forall (x:S1)(y:S2), pf2_dom1 x -> pf2_dom2 y -> S3;
+    pf2_strext : forall (x x':S1)(y y':S2) (Hx:pf2_dom1 x)(Hx':pf2_dom1 x') (Hy:pf2_dom2 y)(Hy':pf2_dom2 y'),
+        (pf2_fun x y Hx Hy) [#] (pf2_fun x' y' Hx' Hy') -> x[#]x' or y[#]y'
+}.
+
+End PartFunct2.
+
 (**
 For example, let's build the function [ex_partFun] defined as follows : 
 \left\{\begin{matrix}
@@ -108,3 +128,37 @@ Hypothesis Hx: IR_non_zero x.
 Let value := ex_partFun_1 x Hx.
 
 End example_function.
+
+Section function_properties.
+
+Open Local Scope Z_scope.
+
+(**
+** Real functions properties
+In this section, [f] is a partial function $$I \rightarrow \mathbb{R}$$.
+*)
+
+Variable f:PartIR.
+Let I := Dom f.
+
+(**
+We define the monotonicity of [f] as follows : 
+- Increasing : $$\forall x, y \in I, x<y \Rigtharrow f(x) \leq f(y)$$ 
+- Strictly increasing : $$\forall x, y \in I, x<y \Rigtharrow f(x) < f(y)$$ 
+- Decreasing : $$\forall x, y \in I, x<y \Rigtharrow f(x) \geq f(y)$$ 
+- Strictly decreasing : $$\forall x, y \in I, x<y \Rigtharrow f(x) > f(y)$$
+- Constant : $$\forall x, y \in I, f(x) = f(y)$$
+- Periodic (of period [T]) : $$\forall x \in \mathbb{I}, \forall k \in \mathbb{Z}, x+kT \in I \Rightarrow f(x+kT) = f(x)
+*)
+
+Definition increasing_fun := forall (x y : IR)(Hx : I x)(Hy : I y),  x[<]y -> f x Hx [<=] f y Hy.
+Definition strict_increasing_fun := forall (x y : IR)(Hx : I x)(Hy : I y),  x[<]y -> f x Hx [<] f y Hy.
+Definition decreasing_fun := forall (x y : IR)(Hx : I x)(Hy : I y),  x[<]y -> f x Hx [>=] f y Hy.
+Definition strict_decreasing_fun := forall (x y : IR)(Hx : I x)(Hy : I y),  x[<]y -> f x Hx [<] f y Hy.
+Definition constant_fun := forall (x y : IR)(Hx : I x)(Hy : I y), f x Hx [=] f y Hy.
+Definition periodic_fun (T : IR) := forall (x : IR)(Hx : I x)(k : Z)(HT : I (x[+] (zring k)[*]T)), f x Hx [=] f (x[+] (zring k)[*]T) HT.
+
+End function_properties.
+
+End Functions_definitions.
+
