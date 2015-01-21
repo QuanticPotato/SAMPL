@@ -1,0 +1,27 @@
+#!/bin/bash
+
+ocamlc -c coq_config.mli
+ocamlc -c coq_config.ml
+
+ocamlc -c cdglobals.ml
+
+ocamlc -c alpha.mli
+ocamlc -c alpha.ml
+
+ocamlc -c index.mli
+ocamlc -c index.ml
+
+ocamlc -c tokens.mli
+ocamlc -c tokens.ml
+
+ocamlc -c output.mli
+ocamlc -c output.ml
+
+ocamlc -c cpretty.mli
+ocamllex cpretty.mll
+ocamlc coq_config.cmo cdglobals.cmo str.cma alpha.cmo index.cmo tokens.cmo output.cmo cpretty.ml
+
+ocamlc coq_config.cmo cdglobals.cmo str.cma alpha.cmo index.cmo tokens.cmo output.cmo cpretty.cmo main.ml
+
+mv a.out coqdoc
+
