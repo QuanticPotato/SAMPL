@@ -1,0 +1,28 @@
+digraph g{
+	logic [label="logic.v", shape=box, fillcolor="burlywood", style="filled,rounded"];
+	lists [label="lists.v", shape=box, fillcolor="burlywood", style="filled,rounded"];
+	structures [label="structures.v", shape=box, fillcolor="burlywood", style="filled,rounded"];
+	integers [label="integers.v", shape=box, fillcolor="burlywood", style="filled,rounded"];
+	reals [label="reals.v", shape=box, fillcolor="burlywood", style="filled,rounded"];
+	functions [label="functions.v", shape=box, fillcolor="burlywood", style="filled,rounded"];
+	differentiability [label="differentiability.v", shape=box, fillcolor="burlywood", style="filled,rounded"];
+	polynomials [label="polynomials.v", shape=box, fillcolor="burlywood", style="filled,rounded"];
+	sequences [label="sequences.v", shape=box, fillcolor="burlywood", style="filled,rounded"];
+	limits [label="limits.v", shape=box, fillcolor="burlywood", style="filled,rounded"];
+	continuity [label="continuity.v", shape=box, fillcolor="burlywood", style="filled,rounded"];
+	arithmetic [label="arithmetic.v", shape=box, fillcolor="burlywood", style="filled,rounded"];
+	logic -> lists
+	lists -> structures
+	structures -> reals
+	structures -> arithmetic
+	structures -> integers
+	arithmetic -> polynomials
+	integers -> sequences
+	reals -> sequences
+	sequences -> functions
+	reals -> functions
+	functions -> differentiability
+	functions -> limits
+	limits -> continuity
+}
+
