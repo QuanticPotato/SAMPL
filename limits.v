@@ -1,7 +1,9 @@
 Require Import ZArith.
 Require Import Classical_Prop.
+Require Import Rbasic_fun.
 
-Require Import SAMPL.sequences.
+Require Export SAMPL.functions.
+Open Scope R_scope.
 
 (**
 * Definitions
@@ -10,125 +12,92 @@ Require Import SAMPL.sequences.
 Section Limit_definitions.
 
 (**
-** Limits of real functions
-*)
-
-Variable f : CSetoid_un_op IR.
-
-(**
-We define the limit [l] of the function [f x] as [x] approaches [x0] with 
-9 different cases (depending on [l] and [x0]) :
-- [x0] is finite :
-  - [l] is finite : $$x_0 \in \mathbb{R}, \lim\limits_{x \to x_0} f(x) = l \in \mathbb{R}$$
-  - [l] is $$+\infty$$ : $$x_0 \in \mathbb{R}, \lim\limits_{x \to x_0} f(x) = +\infty$$
-  - [l] is $$-\infty$$ : $$x_0 \in \mathbb{R}, \lim\limits_{x \to x_0} f(x) = -\infty$$
-- [x0] is $$+\infty$$ :
-  - [l] is finite : $$\lim\limits_{x \to +\infty} f(x) = l \in \mathbb{R}$$
-  - [l] is $$+\infty$$ : $$\lim\limits_{x \to +\infty} f(x) = +\infty$$
-  - [l] is $$-\infty$$ : $$\lim\limits_{x \to +\infty} f(x) = -\infty$$
-- [x0] is $$-\infty$$ :
-  - [l] is finite : $$\lim\limits_{x \to -\infty} f(x) = l \in \mathbb{R}$$
-  - [l] is $$+\infty$$ : $$\lim\limits_{x \to -\infty} f(x) = +\infty$$
-  - [l] is $$-\infty$$ : $$\lim\limits_{x \to -\infty} f(x) = -\infty$$
-*)
-
-Inductive limit : Type :=
-    | xFinite_lFinite : IR->IR->limit
-    | xFinite_lPlusInf : IR->limit
-    | xFinite_lMinusInf : IR->limit
-    | xPlusInf_lFinite : IR->limit
-    | xPlusInf_lPlusInf : limit
-    | xPlusInf_lMinusInf : limit
-    | xMinusInf_lFinite : IR->limit
-    | xMinusInf_lPlusInf : limit
-    | xMinusInf_lMinusInf : limit.
-
-(**
-We assign a predicate to each limit :
-- [x0] is finite :
-  - [l] is finite : $$\forall \epsilon>0, \exists \delta>0, \forall x \in \[x_0 - \delta, x_0 + \delta\] \cap I, |f(x)-l| \leq \epsilon$$
-  - [l] is $$+\infty$$ : $$\forall A \in \mathbb{R}, \exists \delta>0, \forall x \in \[x_0 - \delta, x_0 + \delta\] \cap I, f(x) \geq A$$
-  - [l] is $$-\infty$$ : $$\forall A \in \mathbb{R}, \exists \delta>0, \forall x \in \[x_0 - \delta, x_0 + \delta\] \cap I, f(x) \leq A$$
-- [x0] is $$+\infty$$ :
-  - [l] is finite : $$\forall \epsilon>0, \exists a \in \mathbb{R}, \forall x \in I, x \geq a \Rightarrow |f(x)-l| \leq \epsilon$$
-  - [l] is $$+\infty$$ : $$\forall A \in \mathbb{R}, \exists a \in \mathbb{R}, \forall x \in I, x \geq a \Rightarrow f(x) \geq A$$
-  - [l] is $$-\infty$$ : $$\forall A \in \mathbb{R}, \exists a \in \mathbb{R}, \forall x \in I, x \geq a \Rightarrow f(x) \leq A$$
-- [x0] is $$-\infty$$ :
-  - [l] is finite : $$\forall \epsilon>0, \exists a \in \mathbb{R}, \forall x \in I, x \leq a \Rightarrow |f(x)-l| \leq \epsilon$$
-  - [l] is $$+\infty$$ : $$\forall A \in \mathbb{R}, \exists a \in \mathbb{R}, \forall x \in I, x \leq a \Rightarrow f(x) \geq A$$
-  - [l] is $$-\infty$$ : $$\forall A \in \mathbb{R}, \exists a \in \mathbb{R}, \forall x \in I, x \leq a \Rightarrow f(x) \leq A$$
-*)
-
-Definition limitProp (L : limit) : CProp :=
-    match L with
-        (* This is the same definition that [funLim] in CoRN *)
-        | xFinite_lFinite x0 l => forall (e : IR), e [>] [0] -> exists (d : IR), d [>] [0] 
-                -> forall (x : IR), AbsSmall d (x [-] x0) -> AbsSmall e ((f x) [-] l)
-        | xFinite_lPlusInf x0 => forall (A : IR), exists (d : IR), d [>] [0] 
-                -> forall (x : IR), AbsSmall d (x [-] x0) -> (f x) [>=] A
-        | xFinite_lMinusInf x0 => forall (A : IR), exists (d : IR), d [>] [0] 
-                -> forall (x : IR), AbsSmall d (x [-] x0) -> (f x) [<=] A
-        | xPlusInf_lFinite l => forall (e : IR), e [>] [0] -> exists (a : IR), 
-                forall (x : IR), x [>=] a -> AbsSmall e ((f x) [-] l)
-        | xPlusInf_lPlusInf => forall (A : IR), exists (a : IR),
-                forall (x : IR), x [>=] a -> (f x) [>=] A
-        | xPlusInf_lMinusInf => forall (A : IR), exists (a : IR),
-                forall (x : IR), x [>=] a -> (f x) [<=] A
-        | xMinusInf_lFinite l => forall (e : IR), e [>] [0] -> exists (a : IR),
-                forall (x : IR), x [<=] a -> AbsSmall e ((f x) [-] l)
-        | xMinusInf_lPlusInf => forall (A : IR), exists (a : IR),
-                forall (x : IR), x [<=] a -> (f x) [>=] A
-        | xMinusInf_lMinusInf => forall (A : IR), exists (a : IR),
-                forall (x : IR), x [<=] a -> (f x) [<=] A
-    end.
-
-(**
-In the previous definitions, $$x_0 \in \overline{\mathbb{R}}$$ and $$l \in \overline{\mathbb{R}}$$, so we
-define to helper definitions to deal with them as [IR_inf] :
-*)
-
-Definition limit_variable (L : limit) : IR_inf :=
-    match L with
-        | xFinite_lFinite x0 _ => real x0
-        | xFinite_lPlusInf x0 => real x0
-        | xFinite_lMinusInf x0 => real x0
-        | xPlusInf_lFinite _ => pInf
-        | xPlusInf_lPlusInf => pInf
-        | xPlusInf_lMinusInf => pInf
-        | xMinusInf_lFinite _ => mInf
-        | xMinusInf_lPlusInf => mInf
-        | xMinusInf_lMinusInf => mInf
-    end.
-
-Definition limit_value (L : limit) : IR_inf :=
-    match L with
-        | xFinite_lFinite _ l => real l
-        | xFinite_lPlusInf _ => pInf
-        | xFinite_lMinusInf _ => mInf
-        | xPlusInf_lFinite l => real l
-        | xPlusInf_lPlusInf => pInf
-        | xPlusInf_lMinusInf => mInf
-        | xMinusInf_lFinite l => real l
-        | xMinusInf_lPlusInf => pInf
-        | xMinusInf_lMinusInf => mInf
-    end.
-
-(**
 ** Predicate true at the neighbourhood of $$x_0$$
-*)
-
-(* The predicate [P x] is true at the neighbourhood of $$x_0 \in \overline{\mathbb{R}}$$ if : 
+The predicate [P x] (defined on $$I \subset \mathbb{R}$$) is true at the neighbourhood of 
+$$x_0 \in \overline{\mathbb{R}}$$ if : 
 - $$x_0$$ is finite : $$\exists \delta > 0, \forall x \in \[x_0 - \delta, x_0 + \delta \] \cap I, P(x) \quad \mathrm{true}$$
 - $$x_0 = +\infty$$ : $$\exists a \in \mathbb{R}, \forall x \in \[a, +\infty \[ \cap I, P(x) \quad \mathrm{true}$$
 - $$x_0 = -\infty$$ : $$\exists a \in \mathbb{R}, \forall x \in \]-\infty, a\] \cap I, P(x) \quad \mathrm{true}$$
 *)
 
-Definition predicate_neighbourhood (P : IR->Prop) (x0 : IR_inf) : Prop :=
-    match x0 with
-        | real x => exists d:IR, d [>] [0] -> forall (y : IR), AbsSmall d (y [-] x) -> P x
-        | pInf => exists a:IR,  forall (x : IR), x [>=] a -> P x
-        | mInf => exists a:IR,  forall (x : IR), x [<=] a -> P x
+Section neighbourhood_def.
+
+Variable I : R -> Prop.
+
+Definition predicate_neighbourhood (P : (forall x : R, I x -> Prop)) (x0 : R) : Prop :=
+    forall (x0_inf : R_inf x0),
+    match x0_inf with
+        | xReal H => forall (Hx0 : I x0), exists (d:R), d > 0 -> forall (y : R), Rabs (y - x0) <= d -> P x0 Hx0
+        | pInf H => exists (a:R), forall (x : R)(Hx : I x), x >= a -> P x Hx
+        | mInf H => exists (a:R), forall (x : R)(Hx : I x), x <= a -> P x Hx
+end.
+
+End neighbourhood_def.
+
+(**
+** Limits of real functions
+*)
+
+Section limit_def.
+
+Variable f : PartFunct R.
+Let I := Dom R f.
+
+(**
+We define the limit [l] of the function [f x] as [x] approaches [x0] with 
+9 different cases (depending on [l] and [x0]), and we assign a predicate to each case :
+- [x0] is finite :
+  - [l] is finite : $$x_0 \in \mathbb{R}, \lim\limits_{x \to x_0} f(x) = l \in \mathbb{R}$$ :
+$$\forall \epsilon>0, \exists \delta>0, \forall x \in \[x_0 - \delta, x_0 + \delta\] \cap I, |f(x)-l| \leq \epsilon$$
+  - [l] is $$+\infty$$ : $$x_0 \in \mathbb{R}, \lim\limits_{x \to x_0} f(x) = +\infty$$ :
+$$\forall A \in \mathbb{R}, \exists \delta>0, \forall x \in \[x_0 - \delta, x_0 + \delta\] \cap I, f(x) \geq A$$
+  - [l] is $$-\infty$$ : $$x_0 \in \mathbb{R}, \lim\limits_{x \to x_0} f(x) = -\infty$$ :
+$$\forall A \in \mathbb{R}, \exists \delta>0, \forall x \in \[x_0 - \delta, x_0 + \delta\] \cap I, f(x) \leq A$$
+- [x0] is $$+\infty$$ :
+  - [l] is finite : $$\lim\limits_{x \to +\infty} f(x) = l \in \mathbb{R}$$ :
+$$\forall \epsilon>0, \exists a \in \mathbb{R}, \forall x \in I, x \geq a \Rightarrow |f(x)-l| \leq \epsilon$$
+  - [l] is $$+\infty$$ : $$\lim\limits_{x \to +\infty} f(x) = +\infty$$ :
+$$\forall A \in \mathbb{R}, \exists a \in \mathbb{R}, \forall x \in I, x \geq a \Rightarrow f(x) \geq A$$
+  - [l] is $$-\infty$$ : $$\lim\limits_{x \to +\infty} f(x) = -\infty$$ :
+$$\forall A \in \mathbb{R}, \exists a \in \mathbb{R}, \forall x \in I, x \geq a \Rightarrow f(x) \leq A$$
+- [x0] is $$-\infty$$ :
+  - [l] is finite : $$\lim\limits_{x \to -\infty} f(x) = l \in \mathbb{R}$$ :
+$$\forall \epsilon>0, \exists a \in \mathbb{R}, \forall x \in I, x \leq a \Rightarrow |f(x)-l| \leq \epsilon$$
+  - [l] is $$+\infty$$ : $$\lim\limits_{x \to -\infty} f(x) = +\infty$$ :
+$$\forall A \in \mathbb{R}, \exists a \in \mathbb{R}, \forall x \in I, x \leq a \Rightarrow f(x) \geq A$$
+  - [l] is $$-\infty$$ : $$\lim\limits_{x \to -\infty} f(x) = -\infty$$ :
+$$\forall A \in \mathbb{R}, \exists a \in \mathbb{R}, \forall x \in I, x \leq a \Rightarrow f(x) \leq A$$
+(We use [predicate_neighbourhood] to match [x0]).
+*)
+
+Definition limit (x0 l : R) :=
+    forall (l_inf : R_inf l),
+    match l_inf with
+        | xReal H => predicate_neighbourhood I (fun (x:R)(Hx: Dom R f x) => forall (e : R), e > 0 -> Rabs ((f x Hx) - l) <= e) x0
+        | pInf H => predicate_neighbourhood I (fun (x:R)(Hx: Dom R f x) => forall (A : R), (f x Hx) >= A) x0
+        | mInf H => predicate_neighbourhood I (fun (x:R)(Hx: Dom R f x) => forall (A : R), (f x Hx) <= A) x0
     end.
+
+End limit_def.
+
+(**
+We also define one-sided limits (When x_0 \in \mathbb{R}) : 
+- When $x$ approach $x_0$ from above (right) :
+$\lim\limits_{x \to x_0^+} f(x) = \left. \lim\limits_{x_0} f \right|_{I \cap ] x_0, +\infty[} = l$
+- When $x$ approach $x_0$ from below (left) :
+$\lim\limits_{x \to x_0^-} f(x) = \left. \lim\limits_{x_0} f \right|_{I \cap ] -\infty, x_0[} = l$
+*)
+
+Section limit_one_sided_def.
+
+Definition limitAbove (f : PartFunct R)(x0 l : R) : Prop :=
+    real x0 -> limit (restriction R f (fun (x:R) => x > x0)) x0 l.
+
+Definition limitBelow (f : PartFunct R)(x0 l : R) : Prop :=
+    real x0 -> limit (restriction R f (fun (x:R) => x < x0)) x0 l.
+
+
+End limit_one_sided_def.
 
 (**
 * Theorems
@@ -140,13 +109,6 @@ Sequential characterization of a limit
 
 End Limit_definitions.
 
-(**
-We may use real limits quite often, so here is a notation more "visually" :
-*)
-
-Notation "foo -- x0 --> l" := 
-    (forall L:limit, limitProp foo L -> limit_variable L = x0 -> is_real (limit_value L) l) 
-    (at level 0, x0 at next level) : core_scope.
 
 (**
 * Theorems
