@@ -1,4 +1,6 @@
-Require Import List.
+Require Export List.
+
+Require Export SAMPL.sets.
 
 (**
 This file regroup useful stuff about list that I didn't find in standard library
@@ -35,7 +37,6 @@ End List_creation.
 Section List_map.
 
 Variable A : Type.
-Variable f : A->A->A.
 
 (**
 [list_map] is the equivalent of [map] defined in the stdlib (Coq.Lists.List).
@@ -43,6 +44,8 @@ Variable f : A->A->A.
 *)
 
 Fixpoint list_map (f : A->A) (l : list A) : list A := map f l.
+
+Variable f : A->A->A.
 
 (**
 [list_map2] is in some ways the equivalent of the previous [list_map], but it allows to apply functions
@@ -55,6 +58,17 @@ Fixpoint list_map2 (l l' : list A) (default : A) {struct l} : list A :=
         | nil, a::t => map (fun (x:A) => (f x default)) t
         | a::t, a'::t' => cons (f a a') (list_map2 t t' default)
         | a::t, nil => cons (f a default) (list_map2 t nil default)
+    end.
+
+(**
+[list_map_index] is the equivalent the previous [list_map], but it also gives the current index to the
+map-function.
+*)
+
+Fixpoint list_map_index (f : nat->A->A)(l : list A) := 
+    match l with
+        | nil => nil
+        | a::t => cons (f (S (length t)) a) (list_map_index f t)
     end.
 
 End List_map.

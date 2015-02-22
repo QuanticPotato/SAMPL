@@ -124,4 +124,4 @@ Definition strict_decreasing_fun := forall (x y : R)(Hx : I x)(Hy : I y),  x<y -
 Definition constant_fun := forall (x y : R)(Hx : I x)(Hy : I y), f x Hx = f y Hy.
 (*Definition periodic_fun (T : IR) := forall (x : R)(Hx : I x)(k : Z)(HT : I (x[+] (zring k)[*]T)), f x Hx [=] f (x[+] (zring k)[*]T) HT.*)
 
-End function_properties.
+End function_properties. 
