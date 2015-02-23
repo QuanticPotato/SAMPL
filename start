@@ -1,0 +1,4 @@
+#!/bin/sh
+
+# Start coqide with good loadpath
+coqide -R . SAMPL -R ./math-classes/src MathClasses $@

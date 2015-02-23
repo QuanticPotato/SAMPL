@@ -1,6 +1,7 @@
 digraph g{
 	logic [label="logic.v", shape=box, fillcolor="burlywood", style="filled,rounded"];
 	lists [label="lists.v", shape=box, fillcolor="burlywood", style="filled,rounded"];
+	sets [label="sets.v", shape=box, fillcolor="burlywood", style="filled,rounded"];
 	structures [label="structures.v", shape=box, fillcolor="burlywood", style="filled,rounded"];
 	integers [label="integers.v", shape=box, fillcolor="burlywood", style="filled,rounded"];
 	reals [label="reals.v", shape=box, fillcolor="burlywood", style="filled,rounded"];
@@ -12,7 +13,8 @@ digraph g{
 	continuity [label="continuity.v", shape=box, fillcolor="burlywood", style="filled,rounded"];
 	arithmetic [label="arithmetic.v", shape=box, fillcolor="burlywood", style="filled,rounded"];
 	logic -> lists
-	lists -> structures
+	lists -> sets
+	sets -> structures
 	structures -> reals
 	structures -> arithmetic
 	structures -> integers

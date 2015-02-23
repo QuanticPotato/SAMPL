@@ -1,3 +1,6 @@
 *.vo
 *.glob
 nlia.cache
+.dep/
+math-classes/*
+.depend
