@@ -36,7 +36,8 @@ If a point belongs to [I], then this point is adherent to [I].
 Lemma adherent_point_in (a : R) : I a -> adherent_point a I.
 Proof.
     intro H. unfold adherent_point. intros. exists a. split ; auto.
-    replace (a - a) with 0. now rewrite Rabs_R0. ring.
+    assert (a [-] a [=] [0]) by ring.
+    replace (a - a) with 0. now rewrite Rabs_R0.
 Qed.
 
 End adherent_point_def.
@@ -213,23 +214,23 @@ Proof.
             (* We can then apply this [x] to H7 and H8 *)
             hintro H7 x ; hintro H8 x ; hintro H7 H11 ; hintro H8 H11 ; hintro H7 H9 ; hintro H8 H10.
             (* First, rewrite the hypothesis $$|f(x) - l_1| \leq \epsilon$$ into $$|l_1 - f(x)| \leq \epsilon$$ *)
-            assert (l1 - (f x H11) = -(f x H11 - l1)) by ring. rewrite <- Rabs_Ropp in H8 ; rewrite <- H12 in H8. clear H12.
+            assert ((l1 [-] (f x H11)) [=] ([--]((f x H11) [-] l1))) by ring. rewrite <- Rabs_Ropp in H8 ; rewrite <- H12 in H8. clear H12.
             (* We then have $$|l_2 - l_1| = |-(f(x) - l_2) - (f(x) - l_1)|$$. With the triangle inequality we
             then have $$|l_2 - l_1| \leq |f(x) - l_2| + |f(x) - l_1|$$. With the definition of $$\epsilon$$, it
             comes $$|l_2 - l_1| \leq 2 \epsilon = l_2 - l_1$$ *)
-            assert ( Rabs (l1 - l2) >= Rabs (l1 - l2)) by apply Rle_refl.  pattern (l1 - l2) at 1 in H12.
-              assert (l1 - l2 = (l1 - (f x H11)) + ((f x H11) - l2)) by ring.
-              rewrite H13 in H12. apply Rge_le in H12. clear H13.
-              assert ( Rabs (l1 - f x H11 + (f x H11 - l2)) <= Rabs (l1 - f x H11) + Rabs (f x H11 - l2)) by apply Rabs_triang.
-              assert (Rabs (l1 - l2) <= Rabs (l1 - f x H11) + Rabs (f x H11 - l2)). 
-                apply Rle_trans with (r2:= Rabs (l1 - f x H11 + (f x H11 - l2))) ; auto. clear H12 H13.
+            assert ( Rabs (l1 [-] l2) >= Rabs (l1 [-] l2)) by apply Rle_refl. 
+              assert (l1[-]l2 [=] (l1 [-] (f x H11)) [+] ((f x H11) [-] l2)) by ring.
+              rewrite H13 in H12 at 1. apply Rge_le in H12. clear H13.
+              assert ( Rabs ( (l1 [-] (f x H11)) [+] ((f x H11) [-] l2)) <= (Rabs (l1 [-] (f x H11))) [+] (Rabs ((f x H11) [-] l2))) by apply Rabs_triang.
+              assert (Rabs (l1 [-] l2) <= (Rabs (l1 [-] (f x H11))) [+] (Rabs ((f x H11) [-] l2))). 
+                apply Rle_trans with (r2:= Rabs ((l1[-]f x H11)[+](f x H11[-]l2))) ; auto. clear H12 H13.
               apply (Rlt_rewrite_le_r _ _ _ _ H7) in H14 ; rewrite Rplus_comm in H14 ; apply (Rlt_rewrite_lt_r _ _ _ _ H8) in H14.
             (* $$|l_1 - l_2| \leq 2 \epsilon = l_2 - l_1$$ is clearly a contradiction *)
             rewrite <- double in H14 ; unfold e in H14 ; rewrite RDiv_simpl in H14.
                 (* We can rewrite it as $$l_2 - l_1 < l2 - l1$$, because $$l_2 > l_1$$ *)
-                assert (l1 - l2 < 0) by auto with real. rewrite (Rabs_left _ H12) in H14 ; clear H12.
+                assert (l1 [-] l2 < 0) by auto with real. rewrite (Rabs_left _ H12) in H14 ; clear H12.
                 (* Highlight the contradiction *)
-                assert (- (l1 - l2) = l2 - l1) by ring. rewrite H12 in H14 ; clear H12. now apply (Rlt_asym (l2 - l1) (l2 - l1)).
+                assert (([--] (l1 [-] l2)) [=] (l2 [-] l1)) by ring. rewrite H12 in H14 ; clear H12. now apply (Rlt_asym (l2 - l1) (l2 - l1)).
     (* Reciprocal : We have [l1 = l2], so we just have to rewrite. *)
         elim H1 ; intros ; auto. pattern l2 in H2. now rewrite <- H0 in H2.
         elim H1 ; intros ; auto. pattern l1 in H2. now rewrite H0 in H2.
@@ -267,14 +268,14 @@ Proof.
         unfold limit in H0 ; simplify_inf.
         (* We pose $$A = f(x_0) + 1$$, and $$x = x_0$$, and then we have the contradication $$f(x_0) \geq f(x_0) + 1$$ *)
         hintro H2 (f x0 Hx0 + R1). simplify_inf.  destruct H0. rename x into d. destruct H0. hintro H2 x0. hintro H2 Hx0.
-        assert (f x0 Hx0 >= f x0 Hx0 + R1). apply H2. assert (x0 - x0 = 0) by ring ; rewrite H3. rewrite Rabs_R0. now apply Rgt_lt.
+        assert (f x0 Hx0 >= f x0 Hx0 + R1). apply H2. assert (x0 [-] x0 [=] [0]) by ring ; rewrite H3. rewrite Rabs_0. now apply Rgt_lt.
         assert (1 <= 0) by fourier. apply Rle_not_gt in H4. elim H4. fourier.
     destruct H1.
       (* Case : $$l = -\infty$$ *)
         unfold limit in H0 ; simplify_inf.
         (* We pose $$A = f(x_0) - 1$$, and $$x = x_0$$, and then we have the contradication $$f(x_0) \leq f(x_0) - 1$$ *)
         hintro H2 (f x0 Hx0 - R1). simplify_inf.  destruct H0. rename x into d. destruct H0. hintro H2 x0. hintro H2 Hx0.
-        assert (f x0 Hx0 <= f x0 Hx0 - R1). apply H2. assert (x0 - x0 = 0) by ring ; rewrite H3. rewrite Rabs_R0. now apply Rgt_lt. 
+        assert (f x0 Hx0 <= f x0 Hx0 - R1). apply H2. assert (x0 [-] x0 [=] [0]) by ring ; rewrite H3. rewrite Rabs_0. now apply Rgt_lt. 
         assert (1 <= 0) by fourier. apply Rle_not_gt in H4. elim H4. fourier.
       (* Case : $$l \in \mathbb{R}$$ *)
         assert (limitExists f x0)by now exists l.
@@ -291,7 +292,7 @@ Proof.
         (* We also prove that $$\epsilon < |l - f(x_0)|$$, so $$f(x_0) \not\in [l - \epsilon, l + \epsilon]$$ *)
         assert (e < Rabs (l - f x0 Hx0)) by now apply RDiv_2_lt. 
         (* Or, $$x_0 \in [x_0 - \delta, x_0 + \delta] \cap I$$, so we have a contradiction *)
-        hintro H8 x0. hintro H8 Hx0. assert (x0 - x0 = 0) by ring ; rewrite H10 in H8 ; rewrite Rabs_R0 in H8. hintro H8 H5.
+        hintro H8 x0. hintro H8 Hx0. assert (x0 [-] x0 [=] [0]) by ring ; rewrite H10 in H8 ; rewrite Rabs_0 in H8. hintro H8 H5.
           rewrite Rabs_minus_sym in H9. apply Rlt_not_ge in H9. apply Rlt_gt in H8 ; apply Rgt_ge in H8 ; contradiction.
 Qed.
 

@@ -36,29 +36,45 @@ Already defined structures :
 - Field :        Field            (A apart relation and the reciprocal of the 
                                    multiplication operation)
 (They are all defined in MathClasses.interfaces.abstract_algebra.v)
+*)
 
+(**
+We define the minus operation, which is just the addition of the opposite :
+*)
+
+Section group_minus.
+
+Class Minus A := minus : A -> A -> A.
+
+Context A {Aplus : Plus A} {Aneg : Negate A} {Aminus : Minus A} `{Ag : Group A}.
+
+Parameter minus_spec : forall (a b : A), minus a b = plus a (negate b).
+
+End group_minus.
+
+(**
 We redefine the infix available in math-classes (The character are not accessible 
 through a classical keyboard). Instead, we use the same syntax that the one 
 available in the CoRN library (i.e. [[op]]) : It is close to the classical operator
 symbols, and easy to type.
 *)
 
-Infix "[#]" := apart (at level 5).
-Infix "[=]" := equiv (at level 5).
-Infix "[+]" := plus (at level 9).
-Notation "[--] x" := (negate x) (at level 9).
-Notation "x [-] y" := (x [+] (negate y)) (at level 9).
-Infix "[*]" := mult (at level 8).
+Infix "[#]" := apart (at level 70).
+Infix "[=]" := equiv (at level 70).
+Infix "[+]" := plus (at level 50).
+Notation "[--] x" := (negate x) (at level 30).
+Infix "[-]" := minus (at level 50).
+Infix "[*]" := mult (at level 40).
 
 Notation "[0]" := zero.
 Notation "[1]" := one.
 Notation "[2]" := ([1] + [1]).
 Notation "[3]" := ([2] + [1]).
 Notation "[4]" := ([3] + [1]).
-Notation "[-1]" := one.
-Notation "[-2]" := ([1] + [1]).
-Notation "[-3]" := ([2] + [1]).
-Notation "[-4]" := ([3] + [1]).
+Notation "[-1]" := ([--] one).
+Notation "[-2]" := ([--] ([1] + [1])).
+Notation "[-3]" := ([--] ([2] + [1])).
+Notation "[-4]" := ([--] ([3] + [1])).
 
 (**
 We extend this hierarchy with two more structures :
@@ -162,7 +178,6 @@ To prove that a Ring [R] is a unique factorization domain, we must provide :
 *)  
 
 End Structures_unique_factorization_domain.
-Check FactorizationDomain.
 
 (**
 *** Euclidean domain

@@ -15,7 +15,8 @@ Require Export structures.
 Require Export Rbase.
 Require Export Fourier.
 Require Export Rbasic_fun.
-Open Scope R_scope.
+Require Export Ring.
+Open Scope R_scope. 
 
 (**
 ** Real numbers form a ring : $$(\mathbb{R}, +, \cdot)$$
@@ -28,6 +29,7 @@ Instance R_0: Zero R := R0.
 Instance R_1: One R := R1.
 Instance R_mult: Mult R := Rmult.
 Instance R_negate: Negate R := Ropp.
+Instance R_minus : Minus R := Rminus.
 
 Instance: Ring R.
 Proof.
@@ -51,6 +53,21 @@ Proof.
         (* Distributivity of multiplication over addition *)
         apply Rmult_plus_distr_l.
 Qed.
+
+(**
+We add the real structure $$\mathbb{R}$$, to be able to use the [ring] tactic over
+real numbers.
+*)
+
+Lemma reals_are_ring : ring_theory [0] [1] plus mult minus negate equiv.
+Proof.
+    (* We first prove that [Requiv] is equivalent to [eq] *)
+    assert (forall (a b : R), eq a b <-> equiv a b). intros ; iff_reasoning ;  auto.
+    (* Then we use this equivalence and the axioms definions *)
+    constructor ; intros ; rewrite <- H ; auto with real. apply Rmult_plus_distr_r.
+Qed.
+
+Add Ring reals : reals_are_ring.
 
 Instance R_le: Le R := Rle.
 Instance R_lt: Lt R := Rlt.
@@ -174,8 +191,10 @@ Definition R_non_zero (x : R) : Prop := ~ (x = 0).
 *)
 
 (**
-We also (re)define basic theorems about the real numbers division. 
-(Some are available in the standard library)
+We (re)define basic theorems about :
+- the real numbers division. 
+- The real number 0
+(Some are available in the standard library, but we have different definition)
 *)
 
 Open Scope R_scope.
@@ -224,6 +243,16 @@ Lemma RDiv_simpl : forall (r1 r2 : R)(H : r2 <> 0), r2 * (r1 / r2 // H) = r1.
 intros.
     unfold RDiv ; rewrite RInv_Rinv. 
     rewrite <- Rmult_assoc. rewrite (Rinv_r_simpl_m _ _ H). reflexivity.
+Qed.
+
+Lemma R0_0 : [0] = 0.
+    unfold zero ; unfold R_0 ; auto.
+Qed.
+(* TODO : auto rewrite ! *)
+
+Lemma Rabs_0 : (Rabs [0]) [=] 0.
+Proof.
+    rewrite R0_0. apply Rabs_R0. 
 Qed.
 
 (**
