@@ -1,4 +1,4 @@
-Require Export SAMPL.logic.
+Require Export SAMPL.lists.
 
 (**
 * Definition
@@ -53,7 +53,51 @@ Definition not_empty (I : E -> Prop) := exists (x:E), I x.
 
 End subsets_nonemptiness.
 
+(**
+** Sigma-types
+We use the definition [sig] of the standard library to define types associated with 
+subset predicates.
+*)
+
+Section sigmatypes.
+
+Variable Iprop : E -> Prop.
+Variable I : sig Iprop.
+
+(**
+We define an injection from the subset to the carrier type. (It might be useful in
+definitions to avoid any type problems)
+*)
+
+Definition sig_injection := @proj1_sig E Iprop.
+
+End sigmatypes.
+
 End Sets_definitions.
+
+(**
+In proofs, it may be redundant to have a lot of the previous injection.
+Hence, we define the tactic [inj_replace inj x y] (where [inj] is of type [I -> E]) : 
+it replaces every occurences of [x] that is applied to the injection [I -> E] with a 
+new witness (named [y]) of the same value and of type [E].
+*)
+
+Ltac inj_replace inj x y :=
+    match type of inj with 
+        | ?A -> ?B => pattern (inj x) ; pose (y:= (inj x)) ;
+            replace (inj x) with y ; [idtac | auto]
+        | _ => idtac "[inj] does not seem to be a valid injection !"
+    end.
+
+(**
+We also define the tactic [inj_replace_all inj] (where [inj] is still of type [I->E]) :
+it replaces every occurences of [inj _], applying the previous tactic.
+*)
+Ltac  inj_replace_next inj :=
+  match goal with
+  | [ |- context[inj ?t] ] => let t' := fresh "t" in inj_replace inj t t'
+  end.
+Ltac inj_replace_all inj := repeat inj_replace_next inj.
 
 (**
 * Notations

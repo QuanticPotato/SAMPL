@@ -5,7 +5,7 @@ scons -C ./math-classes/src -j8
 
 # Build the Makefile
 touch .depend
-coq_makefile *.v -R . SAMPL -R ./math-classes/src MathClasses -arg "-R . SAMPL -R ./math-classes/src MathClasses" > Makefile
+coq_makefile integers.v *.v -R . SAMPL -R ./math-classes/src MathClasses -arg "-R . SAMPL -R ./math-classes/src MathClasses" > Makefile
 
 # Hack to generate the .v.d files in a .dep directory
 mkdir .dep

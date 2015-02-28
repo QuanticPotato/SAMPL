@@ -1,6 +1,6 @@
 Require Export List.
 
-Require Export SAMPL.sets.
+Require Export SAMPL.logic.
 
 (**
 This file regroup useful stuff about list that I didn't find in standard library

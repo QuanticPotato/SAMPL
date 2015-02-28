@@ -1,4 +1,6 @@
-Require Import ZArith.
+Require Export ZArith.
+
+Require Export SAMPL.sets.
 
 (**
 * Definitions

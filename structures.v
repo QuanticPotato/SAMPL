@@ -1,11 +1,12 @@
-Require Import ZArith.
-Require Import CFields.
+Require Export SAMPL.integers.
 
-Require Import SAMPL.lists.
-Require Import SAMPL.integers.
+Require Export MathClasses.interfaces.abstract_algebra.
+Require Export MathClasses.interfaces.canonical_names.
+
+Global Generalizable All Variables.
 
 (**
-* 1) Algebraic structures
+* Algebraic structures
 *)
 
 (**
@@ -13,45 +14,59 @@ Require Import SAMPL.integers.
 *)
 
 (**
-For every algebraic structures, we are using the CoRN definitions. 
-We try to give some basic example on how to use them. (i.e. prove
-than such a set and such a binary operation is a group for example 
+For every algebraic structures, we are using the definitions available in 
+the math-classes project. We try to give some basic example on how to use them. 
+(i.e. prove than such a set and such a binary operation is a group for example 
+Already defined structures :
+- Setoid :       Setoid           (An equivalence relation)
+- Semi-Group :   SemiGroup        (A binary operation)
+- Monoid :       Monoid           (An identity element)
+- Group :        Group            (The opposite of the previous binary operation)
+- Abelian group  AbGroup
+- Ring :         Ring             (A mutiplication monoid)
+- Integral Domain    IntegralDomain
+- Field :        Field            (A apart relation and the reciprocal of the 
+                                   multiplication operation)
+(They are all defined in MathClasses.interfaces.abstract_algebra.v)
+
+We redefine the infix available in math-classes (The character are not accessible 
+through a classical keyboard). Instead, we use the same syntax that the one 
+available in the CoRN library (i.e. [[op]]) : It is close to the classical operator
+symbols, and easy to type.
 *)
 
-(**
-     Semi-Group :   CSemiGroup   (in CSemiGroups.v)
-     Monoid :       CMonoid      (in CMonoids.v)
-     Group :        CGroup       (in CGroups.v)
-     Ring :         CRing        (in CRings.v)  
-*)
+Infix "[#]" := apart (at level 5).
+Infix "[=]" := equiv (at level 5).
+Infix "[+]" := plus (at level 9).
+Notation "[--] x" := (negate x) (at level 9).
+Notation "x [-] y" := (x [+] (negate y)) (at level 9).
+Infix "[*]" := mult (at level 8).
+
+Notation "[0]" := zero.
+Notation "[1]" := one.
+Notation "[2]" := ([1] + [1]).
+Notation "[3]" := ([2] + [1]).
+Notation "[4]" := ([3] + [1]).
+Notation "[-1]" := one.
+Notation "[-2]" := ([1] + [1]).
+Notation "[-3]" := ([2] + [1]).
+Notation "[-4]" := ([3] + [1]).
 
 (**
-To build any of these structures, we first have to build their "parent" ones. 
-Then, we simply make a definition [Definition <id> := Build_<struct> <args>].
-- <id> is usually of the form [<set>_as_<struct], like for example Z_as_CRing.
-- <struct> is one of the structures quoted above.
-- <args> are the "parent structure" (i.e. in the hierarchical order) proofs, 
-   and the current structure proof. For example if we try to build a CGroup, we 
-   must give a proof (i.e. a Definition like the previous one) that assert that
-  it is a CMonoid, and prove the CGroup properties.
-Finaly, the Definition has the type of Build_<struct>, which is <struct>. 
-(This is actually the classical way to build a Record) 
-*)
-
-(**
-We define other strucutres in the CoRN structures hierarchy :
-- CRing (already defined : it's the root of our structures). 
-- Unique factorization domain  (called [CFactorizationDomain])
-- Euclidean domain  (called [CEuclideanDomain])
+We extend this hierarchy with two more structures :
+- Unique factorization domain  (called [FactorizationDomain])
+- Euclidean domain  (called [EuclideanDomain])
+(These structures extend the [IntegralDomain] structure)
 *)
 
 Section Structures_extra_relations.
 
-Variable A : CRing.
+Variable A : Type.
+Context `{Af : Field A}.
 
 (**
-Before the next structure definitions, we define relations that are valid in CRing :
-(The multiplication of CRing is commutative)
+Before the next structure definitions, we define relations that are valid in [IntegralDomain] :
+(The multiplication of [IntegralDomain] is commutative)
 - Invertibility : [x] is invertible if $$\exists y \in A, xy = yx = 1$$, and then [y] is its inverse element.
   (On only check one equality, because of the commutativity)
   If [x] is invertible, we also say that [x] is a unit.
@@ -62,18 +77,18 @@ Before the next structure definitions, we define relations that are valid in CRi
 - Primality : [x] is prime if $$x \neq 0 \land x$ is not invertible $ \land (\forall a, b \in A, p | ab \Rightarrow p|a \lor p|b)$.
 *)
 
-Definition invertible (x : A) : Prop := exists (y : A), x[*]y = [1].
+Definition invertible (x : A) : Prop := exists (y : A), Amult x y = Aone.
 
-Definition associated (x y : A) : Prop := exists (k : A), invertible k and (x [=] k[*]y).
+Definition associated (x y : A) : Prop := exists (k : A), invertible k /\ (Ae x (Amult k y)).
 
-Definition divide (x y : A) : Prop := exists (k : A),  (y [=] k[*]x).
+Definition divide (x y : A) : Prop := exists (k : A),  (Ae y (Amult k x)).
 
 Definition rel_prime (x y : A) : Prop := forall (d : A), divide d x /\ divide d y /\ invertible d. 
 
-Definition irreducible (p : A) : Prop := ((p [#] [0]) -> True) /\ ((forall (x y : A), ((p [#] x[*]y)  -> True))).
+Definition irreducible (p : A) : Prop := (Aap p Azero) /\ ((forall (x y : A), (Aap p (Amult x y)))).
 
-Definition prime (x : A) : Prop := ((x [#] [0]) -> True) /\ (~ (invertible x)) /\ 
-    (forall (a b : A), divide x (a[*]b) -> divide x a \/ divide x b).
+Definition prime (x : A) : Prop := (Aap x Azero) /\ (~ (invertible x)) /\ 
+    (forall (a b : A), divide x (Amult a b) -> divide x a \/ divide x b).
 
 End Structures_extra_relations.
 
@@ -100,11 +115,12 @@ Notation "x [/\] y" := (rel_prime x y) (at level 0).
 
 Section Structures_unique_factorization_domain.
 
-Variable R : CRing.
+Context R {Re : Equiv R} {Rplus : Plus R} {Rmult : Mult R} {Rzero : Zero R} {Rone : One R}
+    {Rnegate : Negate R} {Rap : Apart R} {Rrecip : Recip R} {Rd : IntegralDomain R}.
 
 (**
-A Unique factorization domain is a CRing [R] that respect this definition :
-   Every non-zero [x] of [R] can be written as a product of irreducible elements $$p_i$$ of [A] and a unit $$u$$ :
+A Unique factorization domain is a unique factorization domain  [R] that respect this definition :
+   Every non-zero [x] of [R] can be written as a product of irreducible elements $$p_i$$ of [R] and a unit $$u$$ :
    $$x = u p_1 p_2 ... P_n$$ with $$n \geq 0$$.  If we don't take into account the order of the factors, 
    this decomposition is unique :
    If $$q_i$$ are irreducible elements of [A] and $$w$$ a unit and $$x = w q_1 q_2 ... q_m$$ with $$m \geq 0$$,
@@ -117,21 +133,28 @@ A Unique factorization domain is a CRing [R] that respect this definition :
    is the valuation).
 *)
 
-Record CFactorizationDomain : Type := {   
-    cfd_crr :> CRing;
-    cfd_non_zero : forall (x : cfd_crr), x [#] [0] -> cfd_crr;
-    cfd_factors_decomp : (cfd_crr -> list cfd_crr);
-    cfd_factors_prime : forall (x : cfd_crr), list_all_predicate cfd_crr (fun x => prime cfd_crr x) (cfd_factors_decomp x)
+Class DecompositionFun E := decomposition_fun :> E -> list E.
+Context {DecompFun : DecompositionFun R}. 
+Class DecompositionSpec : Prop := 
+    decomp_prime_factors : (forall (x : R), list_all_predicate R (fun x => prime R x) (decomposition_fun x)).
+
+Class NonZeroStruct : Prop := every_elmt_non_zero : forall (x:R), x [#] [0].
+
+Class FactorizationDomain : Prop := {   
+    cfd_crr :> IntegralDomain R ;
+    cfd_non_zero :> NonZeroStruct;
+    cfd_factors_decomp : DecompositionSpec 
 }.
 
 (**
-To prove that a CRing [R] is a unique factorization domain, we must provide :
+To prove that a Ring [R] is a unique factorization domain, we must provide :
 - A proof that every element of [R] are not zero  ([cfd_non_zero])
 - A term [R -> list R] that give the decomposition of factors of $$a \in R$$  ([cfd_factors_decomp])
 - A proof that all these factors are prime
 *)  
 
 End Structures_unique_factorization_domain.
+Check FactorizationDomain.
 
 (**
 *** Euclidean domain
@@ -139,54 +162,46 @@ End Structures_unique_factorization_domain.
 
 Section Structures_euclidean_domain.
 
+Context D {De : Equiv D} {Dplus : Plus D} {Dmult : Mult D} {Dzero : Zero D} {Done : One D}
+    {Dnegate : Negate D} {Dap : Apart D} {Drecip : Recip D} {Dd : IntegralDomain D} 
+    {Ddecomp : DecompositionFun D} {Dfd : FactorizationDomain D}.
+
 (**
 An euclidean domain is a unique factorization domain [D] in which we can define an Euclidean function :
 An Euclidean function is a function $$f : D \rightarrow \mathbb{N}$$ satisfying the following fundamental 
 division-with-remainder propert : 
-   If [a] and [b] are in [D], then $$\exists (q, r) \in (D, R)^2, a = bq + r$$ and either $$r = 0$$ or $$f(r) < f(b)$$.
+   If [a] and [b] are in [D], then $$\exists (q, r) \in (D, D)^2, a = bq + r$$ and either $$r = 0$$ or $$f(r) < f(b)$$.
 We call this function the "valuation function".
-We extend this valuation function if $$r = 0$$, and we 
-*)
-
-Definition is_EuclideanFunction (R:CFactorizationDomain) (f : R->nat) : Prop :=
-    forall (a b : R), exists (q r : R), ((a [=] (b[*]q [+] r))->True) /\ (
-           ((r [=] [0]) -> nat_mInf (f r))
-        \/ ((r [#] [0]) -> (f r) < (f b))
-    ).
-
-(**
-At this point (i.e. in an Euclidean Domain), we are able to define the classical euclidean division specification
-(i.e. calculate the quotient and the remainder (=the modulo)) :
+We also define the classical euclidean division specification (i.e. calculate the quotient and the remainder (=the modulo)) :
    Given an element [a] and a non-zero element [b] of the euclidean domain [R], there exist the pair $$(q, r) \in R^2$$ such
    that $$a = bq + r$$, and $$r = 0$$ or $$v(r) < v(b)$$. (With [v] the euclidean function).
    Then, the quotient is [q] and the remainder (or the modulo) is [r]
-*)
-
-Definition euclideanDivision_spec (R : CFactorizationDomain) (euclidFunc : R->nat) (division : R -> R -> R*R) : Prop :=
-    forall (a b : R), b [#] [0] -> (exists (q r : R), ((a [=] b[*]q [+] r)->True) /\ ((r [=] [0] or (euclidFunc r < euclidFunc b))->True)).
-
-Record is_CEuclideanDomain (R : CFactorizationDomain) (euclidFunc : R->nat) (division : R -> R -> R*R) : Prop := {
-     ax_euclideanFunction : is_EuclideanFunction R euclidFunc;
-     ax_euclideanDivision_spec : euclideanDivision_spec R euclidFunc division
-}.
-
-(**
-Thanks to the euclidean division, we can easily add the [ced_div] and [ced_mod] function (It respectively refers 
+Thanks to the euclidean division, we can easily add the [ef_div] and [ef_mod] function (It respectively refers 
 to the projections of the euclidean division)
 *)
 
-Record CEuclideanDomain : Type := {
-    ced_crr :> CFactorizationDomain;
-    ced_euclideanFunction : ced_crr -> nat;
-    ced_euclideanDivision : ced_crr -> ced_crr -> ced_crr*ced_crr;
-    ced_proof : is_CEuclideanDomain ced_crr ced_euclideanFunction ced_euclideanDivision;
+Class ValuationFun D := valuation_fun : D->nat.
+Context {DVfun : ValuationFun D}.
+Class EuclideanDiv D := euclidean_div : D -> D -> D*D.
+Context {Deuclid_div : EuclideanDiv D}.
+
+Class EuclideanFunctionSpec : Prop := {
+    valuation_spec : forall (a b : D), exists (q r : D), (a [=] (b[*]q [+] r)) /\ (
+        ((r [=] [0]) /\ nat_mInf (valuation_fun r)) \/ ((r [#] [0]) /\ ((valuation_fun r) < (valuation_fun b))%nat) 
+    ) ;
+    euclidean_spec : forall (a b : D), b [#] [0] -> a [=] ( let (q, r) := euclidean_div a b in (a [*] q) [+] b)
+}.
+
+Class EuclideanDomain : Prop := {
+    ced_crr : FactorizationDomain D;
+    ced_proof : EuclideanFunctionSpec ;
     (* We use the same definition that [div] and [modulo] in the stdlib to select the quotient or the remainder *)
-    ced_div := fun (a b : ced_crr) => (let (q, _) := ced_euclideanDivision a b in q);
-    ced_mod := fun (a b : ced_crr) => (let (_, r) := ced_euclideanDivision a b in r)
+    ced_div := fun (a b : D) => (let (q, _) := euclidean_div a b in q) ;
+    ced_mod := fun (a b : D) => (let (_, r) := euclidean_div a b in r)
 }.
 
 (**
-To prove a CFactorizationDomain [D] is an Euclidean Domain, we must provide :
+To prove a FactorizationDomain [D] is an Euclidean Domain, we must provide :
 - A function [ced_euclideanFunction] of type [D -> nat]
 - A proof that it is an euclidean function (with [is_EuclideanFunction])
 - A euclidean division function (The way it computes the quotient and the modulo in this ring)
@@ -209,16 +224,10 @@ Notation "x [%] y" := (ced_mod x y) (at level 0).
 *)
 
 (* First example : Prove that (Z, +, x) is a ring 
-   The proofs are already available in CoRN.model, but we'll redo them 
-   as example (It is easier to read this file than look for the proofs 
-   in the CoRN documentation). 
+   The proofs are available in MathClasses.implementations.ZType_integers.v
 *)
 
-(* First of all, prove that (Z, =, \neq) is a constructive Setoid. This is not 
-   interesting mathematicaly, so we'll use the CoRN definition [Z_as_CSetoid],
-   available in CoRN.model.setoids.Zsetoid 
-*)
-
+(*
 (**
 * 2) Sub-structures
 *)
@@ -277,3 +286,4 @@ Qed.
 aZ_subgroup_Z has type CGroup 
 *)
 Definition aZ_subgroup_Z := Build_SubCGroup Z_as_CGroup z_in_aZ zero_in_aZ plus_aZ inv_aZ.
+*)

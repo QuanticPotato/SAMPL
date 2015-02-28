@@ -2,8 +2,8 @@ digraph g{
 	logic [label="logic.v", shape=box, fillcolor="burlywood", style="filled,rounded"];
 	lists [label="lists.v", shape=box, fillcolor="burlywood", style="filled,rounded"];
 	sets [label="sets.v", shape=box, fillcolor="burlywood", style="filled,rounded"];
-	structures [label="structures.v", shape=box, fillcolor="burlywood", style="filled,rounded"];
 	integers [label="integers.v", shape=box, fillcolor="burlywood", style="filled,rounded"];
+	structures [label="structures.v", shape=box, fillcolor="burlywood", style="filled,rounded"];
 	reals [label="reals.v", shape=box, fillcolor="burlywood", style="filled,rounded"];
 	functions [label="functions.v", shape=box, fillcolor="burlywood", style="filled,rounded"];
 	differentiability [label="differentiability.v", shape=box, fillcolor="burlywood", style="filled,rounded"];
@@ -14,10 +14,10 @@ digraph g{
 	arithmetic [label="arithmetic.v", shape=box, fillcolor="burlywood", style="filled,rounded"];
 	logic -> lists
 	lists -> sets
-	sets -> structures
+	sets -> integers
+	integers -> structures
 	structures -> reals
 	structures -> arithmetic
-	structures -> integers
 	arithmetic -> polynomials
 	integers -> sequences
 	reals -> sequences
