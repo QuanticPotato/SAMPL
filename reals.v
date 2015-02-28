@@ -1,5 +1,12 @@
-Require Export SAMPL.logic.
-Require Export SAMPL.sets.
+(***********************************************************************
+*  ____   __   _  _  ____  __    *     Still Another Math library !    *
+* / ___) / _\ ( \/ )(  _ \(  )   *-------------------------------------*
+* \___ \/    \/ \/ \ ) __// (_/\ *        (c) Chauvin Barnabé          *
+* (____/\_/\_/\_)(_/(__)  \____/ *  This file is distributed under the *
+*                                *  terms of the GPL License Version 2 *
+***********************************************************************)
+
+Require Export structures.
 
 (**
 * Definitions
@@ -9,6 +16,44 @@ Require Export Rbase.
 Require Export Fourier.
 Require Export Rbasic_fun.
 Open Scope R_scope.
+
+(**
+** Real numbers form a ring : $$(\mathbb{R}, +, \cdot)$$
+We use the axiomatic defintion of the real numbers in the standard library
+*)
+
+Instance R_equiv: Equiv R := eq.
+Instance R_plus: Plus R := Rplus.
+Instance R_0: Zero R := R0.
+Instance R_1: One R := R1.
+Instance R_mult: Mult R := Rmult.
+Instance R_negate: Negate R := Ropp.
+
+Instance: Ring R.
+Proof.
+    (* Unfold the axioms of the algebraic structures *)
+    repeat (split; try apply _); repeat intro.
+    (* Now we prove these axioms : *)
+        (* Associativity of addition *)
+        assert (x + (y + z) = x + y + z) as H_assoc ; apply eq_sym ; apply Rplus_assoc ; apply H_assoc.
+        (* Neutral element for the addition (left and right) *)
+        apply Rplus_0_l. rewrite Rplus_comm ; apply Rplus_0_l.
+        (* Neutral element for the opposite (left and right) *)
+        rewrite Rplus_comm ; apply Rplus_opp_r. apply Rplus_opp_r.
+        (* Commutativity of addition *)
+        apply Rplus_comm.
+        (* Associativity of multiplication *)
+        assert (x * (y * z) = x * y * z) as H_assoc ; apply eq_sym ; apply Rmult_assoc ; apply H_assoc.
+        (* Neutral element for the multiplication (left and right) *)
+        apply Rmult_1_l. rewrite Rmult_comm ; apply Rmult_1_l.
+        (* Commutativity of multiplication *)
+        apply Rmult_comm.
+        (* Distributivity of multiplication over addition *)
+        apply Rmult_plus_distr_l.
+Qed.
+
+Instance R_le: Le R := Rle.
+Instance R_lt: Lt R := Rlt.
 
 (**
 ** Division
@@ -47,47 +92,6 @@ Qed.
 Hint Resolve R3_neq_R0: real.
 
 (**
-** Real numbers form a ring : $$(\mathbb{R}, +, \cdot)$$
-We use the axiomatic defintion of the real numbers in the standard library
-*)
-
-Require Import MathClasses.interfaces.canonical_names.
-Require Import MathClasses.interfaces.abstract_algebra.
-
-Instance R_equiv: Equiv R := eq.
-Instance R_plus: Plus R := Rplus.
-Instance R_0: Zero R := R0.
-Instance R_1: One R := R1.
-Instance R_mult: Mult R := Rmult.
-Instance R_negate: Negate R := Ropp.
-
-Instance: Ring R.
-Proof.
-    (* Unfold the axioms of the algebraic structures *)
-    repeat (split; try apply _); repeat intro.
-    (* Now we prove these axioms : *)
-        (* Associativity of addition *)
-        assert (x + (y + z) = x + y + z) as H_assoc ; apply eq_sym ; apply Rplus_assoc ; apply H_assoc.
-        (* Neutral element for the addition (left and right) *)
-        apply Rplus_0_l. rewrite Rplus_comm ; apply Rplus_0_l.
-        (* Neutral element for the opposite (left and right) *)
-        rewrite Rplus_comm ; apply Rplus_opp_r. apply Rplus_opp_r.
-        (* Commutativity of addition *)
-        apply Rplus_comm.
-        (* Associativity of multiplication *)
-        assert (x * (y * z) = x * y * z) as H_assoc ; apply eq_sym ; apply Rmult_assoc ; apply H_assoc.
-        (* Neutral element for the multiplication (left and right) *)
-        apply Rmult_1_l. rewrite Rmult_comm ; apply Rmult_1_l.
-        (* Commutativity of multiplication *)
-        apply Rmult_comm.
-        (* Distributivity of multiplication over addition *)
-        apply Rmult_plus_distr_l.
-Qed.
-
-Instance R_le: Le R := Rle.
-Instance R_lt: Lt R := Rlt.
-
-(**
 We define the axiom of trichotomy.
 We then define the tactic [trichotomy_cases] that generates the 3 differents cases (as 3 subgoals)
 of this axiom for two real numbers.
@@ -104,7 +108,7 @@ Ltac trichotomy_cases var ref :=
 
 Ltac different_cases H :=
     match type of H with
-        | ?x <> ?y => trichotomy_cases x y ; [idtac | contradiction | idtac] ; clear H
+        | ~ (?x [=] ?y) => trichotomy_cases x y ; [idtac | contradiction | idtac] ; clear H
         | _ => fail
     end.
 

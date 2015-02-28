@@ -1,3 +1,11 @@
+(***********************************************************************
+*  ____   __   _  _  ____  __    *     Still Another Math library !    *
+* / ___) / _\ ( \/ )(  _ \(  )   *-------------------------------------*
+* \___ \/    \/ \/ \ ) __// (_/\ *        (c) Chauvin Barnabé          *
+* (____/\_/\_/\_)(_/(__)  \____/ *  This file is distributed under the *
+*                                *  terms of the GPL License Version 2 *
+***********************************************************************)
+
 Require Import ZArith.
 
 Require Export SAMPL.functions.
@@ -183,7 +191,7 @@ Proof.
         assert (d <= d2) by apply Rmin_r. apply Rlt_le_trans with (r2 := d) ; auto.
         assumption.
 Qed.
-Check uniqueness.
+
 Theorem limit_uniqueness : limitExists f x0 -> forall (l1 l2 : R), (limit f x0 l1 /\ limit f x0 l2) <-> l1 = l2 /\ (limit f x0 l1 \/ limit f x0 l2).
 Proof.
     intros H l1 l2. iff_reasoning ; intros ; destruct H0 ; split ; [idtac | now left | idtac | idtac].

@@ -1,3 +1,11 @@
+(***********************************************************************
+*  ____   __   _  _  ____  __    *     Still Another Math library !    *
+* / ___) / _\ ( \/ )(  _ \(  )   *-------------------------------------*
+* \___ \/    \/ \/ \ ) __// (_/\ *        (c) Chauvin Barnabé          *
+* (____/\_/\_/\_)(_/(__)  \____/ *  This file is distributed under the *
+*                                *  terms of the GPL License Version 2 *
+***********************************************************************)
+
 Require Export ZArith.
 
 Require Export SAMPL.sets.
