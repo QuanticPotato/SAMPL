@@ -6,6 +6,8 @@
 *                                *  terms of the GPL License Version 2 *
 ***********************************************************************)
 
+Global Generalizable All Variables.
+
 Require Export SAMPL.lists.
 
 (**
@@ -78,6 +80,18 @@ definitions to avoid any type problems)
 *)
 
 Definition sig_injection := @proj1_sig E Iprop.
+
+Let sig := sig_injection.
+
+(**
+The [exist] constructor of the [sig] type is the opposite of our [sig_injection].
+Thus, the expression [sig (exist ...)] might be simplified : 
+*)
+
+Lemma sig_simpl : forall `(Reflexive E R) (x:E)(Hx : Iprop x), R (sig (exist Iprop x Hx)) x.
+Proof.
+    intros. unfold sig. unfold sig_injection. unfold proj1_sig. reflexivity.
+Qed. 
 
 End sigmatypes.
 

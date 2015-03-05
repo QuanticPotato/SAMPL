@@ -77,6 +77,35 @@ Notation "[-3]" := ([--] ([2] + [1])).
 Notation "[-4]" := ([--] ([3] + [1])).
 
 (**
+We define a few rewriting lemmas :
+*)
+
+Section rewriting_lemmas.
+
+Context E {Ee : Equiv E} {Eequiv_refl : Reflexive Ee}{Eequiv_symm : Symmetric Ee}.
+
+(**
+Sometime, it might be useful to convert our structure equality ([equiv]) to the coq leibniz equality ([eq]),
+in order to use stdlib lemmas for example :
+*)
+
+Lemma eq_comp : forall (x y : E), eq x y -> x[=]y.
+Proof.
+    intros. now rewrite H.
+Qed.
+
+(**
+We also add a characterization of the MathClasses [Associative] property, in order to provide a fast access to
+the mathematical definition (i.e. get rid of [HeteroAssociative]) :
+*)
+Lemma assoc_charac `(Associative E R) : forall (x y z : E), ((R x (R y z))) [=] ((R (R x y)) z) .
+Proof.
+    auto.
+Qed.
+
+End rewriting_lemmas.
+
+(**
 We extend this hierarchy with two more structures :
 - Unique factorization domain  (called [FactorizationDomain])
 - Euclidean domain  (called [EuclideanDomain])
@@ -246,40 +275,240 @@ Notation "x [%] y" := (ced_mod x y) (at level 0).
 ** Use examples
 *)
 
-(* First example : Prove that (Z, +, x) is a ring 
-   The proofs are available in MathClasses.implementations.ZType_integers.v
-*)
-
-(*
 (**
-* 2) Sub-structures
-*)
-
-Require Import Zgroup.
-Open Scope Z_scope.
-
-(* The CoRN library also provide the definitions of the sub-structure (e.g. a
-   sub-group, a sub-ring ...). Here are the definitions :
-    Sub-Semi-Group :   Build_SubCSemiGroup   (in CSemiGroups.v)
-    Sub-Monoid :       Build_SubCMonoid      (in CMonoids.v)
-    Sub-Group :        Build_SubCGroup       (in CGroups.v)
-    Sub-Ring :         Build_SubCRing        (in CRings.v)  
-*)
-
-(* To prove a set is a sub-<structure>, we have to provide three things :
-     - The structure (For example a Group, if we want to build a Sub-Group
-     - A predicate that assert which elements belongs to the new set
-     - The proofs that this new set satisfy the sub-<structure> properties
-       (e.g., if it is a Sub-Group, proving that the neutral element belong
-       to the new set, prove the bin-operation is well defined over the new
-       set, and finaly prove that every elements of the new set are symmetrizable 
+First example : Prove that (Z, +, x) is a ring.
+The proofs are available in MathClasses.implementations.ZType_integers.v
 *)
 
 (**
-** First example : Prove that (aZ, +) (with a:Z) are a sub-groups of (Z, +) 
+* Sub-structures
+In this section, we define the algebraic sub-structures : A sub-field, a sub-ring .. 
+
+These sub-structures are subsets of their "root-structures", that satisfy several axioms.
+The subsets will be characterized by a predicate [E->Prop] (that assert which elements 
+belongs to the subset), and a sigma type [F].
 *)
 
-Variable a:Z.
+Section Substructures_definition.
+
+Variable E:Set.
+
+Variable Fprop : E->Prop.
+Let F:= sig Fprop.
+Let inj := sig_injection E Fprop.
+
+(**
+$$F$$ is closed under the operation $$\cdot$$ if $$\forall x, y \in F, x \cdot y \in F$$.
+*)
+
+Class ClosedOp (op : E->E->E) : Prop := closed_internal_op : forall (x y : F), Fprop (op (inj x) (inj y)).
+
+Instance PropEquiv : Equiv Prop.
+    refine (fun (x y : Prop) => eq x y).
+Defined.
+
+(**
+** Equivalence relations
+We define the restriction for the equivalence relation. (Every structure need this relation)
+(We also easily prove the three properties of the relation : reflexivity, symmetry, transitiviy)
+*)
+
+Context {Ee : Equiv E} {Eequiv_refl : Reflexive Ee} {Eequiv_symm : Symmetric Ee} 
+    {Eequiv_trans : Transitive Ee}.
+
+Instance Fe : Equiv F.
+    red ; refine (fun (x y : F) => (inj x) [=] (inj y)).
+Defined.
+
+Instance Fequiv_refl : Reflexive equiv.
+    red ; intros ; apply Eequiv_refl.
+Defined.
+
+Instance Fequiv_symm : Symmetric equiv.
+    red ; intros ; apply Eequiv_symm in H ; apply Eequiv_symm ; now apply Eequiv_symm in H. 
+Defined.
+
+Instance Fequiv_trans : Transitive equiv.
+    (* Unfold and reduce *)
+    red ; intros. repeat unfold equiv,Fe in H, H0. repeat unfold equiv, Fe.
+    now apply Eequiv_trans with (y:=(inj y)).
+Defined.
+
+Lemma inj_ext_eq : forall (x y : F), Fe x y -> Ee (inj x) (inj y).
+Proof.
+    intros. unfold Fe in H. assumption.
+Qed.
+
+(**
+We can rewrite under our injection [inj], and under the [exist] constructor (the reciprocal of the
+injection [inj]).
+*)
+
+Instance Ee_inj_proper : Proper (Fe ==> Ee) inj.
+    auto.
+Defined.
+
+(** TODO !! *)
+
+Instance Ee_fprop_proper : Proper (Ee ==> iff) Fprop.
+Admitted.
+
+Lemma exist_eq : forall (x y : E)(Hx : Fprop x)(Hy : Fprop y), x[=]y -> 
+    (exist Fprop x Hx) = (exist Fprop y Hy).
+Proof.
+Admitted.
+
+(**
+The tactic [rewrite_exist] allow to rewrite [x:E] under a [exist Fprop x Hx] 
+statement (where [Hx] is a proof of [Fprop x]).
+*)
+
+Ltac rewrite_exist lemma :=
+    match type of lemma with 
+        | equiv ?v1 ?v2 => 
+            match goal with
+                | [ Hprop : Fprop v1 |- _ ] => let H2 := fresh in
+                    match type of Hprop with
+                        | ?P => (* Duplicate H : *) assert P as H2 by auto ;
+                            rewrite lemma in H2 ;rewrite (exist_eq v1 v2 Hprop H2 lemma)
+                    end
+                | _ => idtac "fail 2"
+            end 
+        | _ => idtac "fail 1"
+    end.
+
+(**
+** Sub-group
+The group structure provides an addition (And its opposite) and a unit.
+We moreover assume that $$F$$ is closed under this addition (When one define an instance
+of any of the following substructures, it will have to prove that the addition is closed).
+*)
+
+Context {Eplus : Plus E} {Eplus_assoc : Associative Eplus} 
+    {Ezero : Zero E} {Enegate : Negate E} {Eg : Group E}
+    {Eplus_proper : Proper (Ee ==> Ee ==> Ee) plus}.
+Context {PlusClosed : ClosedOp plus}.
+
+Section subgroup_def.
+
+(**
+The addition in $$F$$ is just the restriction of the addition in $$E$$ : $$+_F = {+_E}_{|F \times F}$$.
+(As for [Equiv], we then prove this operation is [Associative] and [Proper])
+*)
+
+Global Instance Fplus : Plus F .
+    unfold Plus ; refine (fun (x y : F) => exist Fprop ((inj x) [+] (inj y)) _ ).
+    apply closed_internal_op.
+Defined.
+
+Global Instance Fplus_assoc : Associative Fplus.
+    repeat red ; unfold Fplus ; intros ; apply Eplus_assoc.
+Defined.
+
+Lemma inj_ext_plus : forall (x y:F), Eplus (inj x) (inj y) [=] inj (Fplus x y).
+Proof.
+    intros ; unfold Fplus ; pose (X:=(inj x[+]inj y)) ; pose (H:=(closed_internal_op x y)).
+    assert ((inj (exist Fprop X H)) [=] X). apply sig_simpl ; auto. 
+    assumption.
+Qed.
+
+Global Instance Fplus_proper : Proper (Fe ==> Fe ==> Fe) Fplus.
+    (* Unfold the definition *)
+    repeat red ; intros.
+    (* We can prove easily than $$x +_E x_0 =_E y +_E y_0$$ *)
+    assert (plus (inj x) (inj x0) = plus (inj y) (inj y0)) by (rewrite H, H0 ; reflexivity).
+    (* Then, we use [sig_simpl] *)
+    assert ((inj (exist _ (_ (_ x) (_ x0)) (closed_internal_op x x0))) [=] 
+        (plus (inj x) (inj x0))) by exact (sig_simpl _ _ _ _ _).
+    assert ((inj (exist _ (_ (_ y) (_ y0)) (closed_internal_op y y0))) [=] 
+        (plus (inj y) (inj y0))) by exact (sig_simpl _ _ _ _ _).
+    now rewrite H2, H3.
+Defined.
+
+(**
+We can now define the Sub-group itself. We then define a "useful characterization" that
+allow to prove only a few axioms (using the fact the addition is closed for $$F$$)
+*)
+
+Context {Fzero : Zero F} {Fnegate : Negate F}.
+
+Class SubGroup : Prop := {
+    subg_axioms :> Group F
+}.
+
+End subgroup_def.
+
+Section subgroup_criteria.
+
+(**
+First implication : We suppose that 
+- H1 : $$0_E \in F$$, thus we can build our $$0_F$$.
+- H2 : $$\forall x, y \in F, x + y \in F$$
+- H3 : $$\forall x \in F, x^{-1} \in F$$. We can then define [Fnegate] as the restriction of [Enegate].
+and we prove that (F, +) is a subgroup of $$E$$
+*)
+
+Section first_implication.
+
+Hypothesis Ezero_F : Fprop Ezero.
+Instance Fzero : Zero F := exist Fprop Ezero Ezero_F.
+
+Hypothesis Fplus_closed : ClosedOp plus.
+
+Hypothesis Fnegate_F : forall (x:F), Fprop ([--] (inj x)).
+Instance Fnegate : Negate F.
+    unfold Negate. refine (fun x => exist Fprop ([--] (inj x)) _). apply Fnegate_F.
+Defined.
+
+Lemma Subgroup_criteria_1 : SubGroup.
+Proof.
+    (* We already proved some axioms with our hypothesis *)
+    repeat split ; auto. exact Fplus_assoc. exact Fplus_proper.
+    (* TODO *)
+Admitted.
+
+End first_implication.
+
+Section second_implication.
+
+(**
+Second implication : We suppose that 
+- $(F, +) is a subgroup of $$E$$
+and we prove that $$1_E \in F$$, $$\forall x, y \in F, x + y \in F$$ (It is immediate with the defintion
+of the internal addition), $$\forall x \in F, x^{-1} \in F$$.
+*)
+
+Context `{Fg : SubGroup}.
+
+Lemma Subgroup_criteria_2 : Fprop Ezero /\ (forall (x : F), Fprop (Enegate (inj x))).
+Proof.
+    (* TODO *)
+Admitted.
+
+(*Lemma Fzero_ezero : inj Fzero [=] Ezero.
+Proof.
+    pose (f0:= inj Fzero) ; pose (f0_opp := Enegate f0).
+    (* First, we prove that $$0_F +_E 0_F = 0_F$$ *)
+    assert (f0 [+] f0 = f0) ; unfold f0. rewrite inj_ext_plus. 
+Check left_identity.
+rewrite left_identity.
+    (* We prove that $$((-0_F) +_E 0_F) +_E 0_F = (-0_F) +_E 0_F = 0_E$$ and that 
+              $$((-0_F) +_E 0_F) +_E 0_F = 0_F$$ *)
+            assert (f0_opp [+] f0 [+] f0 [=] Ezero) by
+                (rewrite <- assoc_charac ; auto ; rewrite H0 ; unfold f0_opp ;  now apply negate_l).
+            assert (f0_opp [+] f0 [+] f0 [=] f0). assert (f0_opp[+]f0 [=] Ezero) by now apply negate_l.
+              rewrite H2 ; rewrite left_identity ; reflexivity.
+(* Then, we prove that $$0_E = 0_F$$ by transitivity *) *)
+
+End second_implication.
+
+End subgroup_criteria.
+
+(**
+For example, we prove that (aZ, +) (with a:Z) are a sub-groups of (Z, +) 
+*)
+
+(*Variable a:Z.
 Definition z_in_aZ (z:Z_as_CGroup) : CProp := exists (k : Z), z = k*a.
 
 (**
@@ -310,3 +539,40 @@ aZ_subgroup_Z has type CGroup
 *)
 Definition aZ_subgroup_Z := Build_SubCGroup Z_as_CGroup z_in_aZ zero_in_aZ plus_aZ inv_aZ.
 *)
+
+(**
+** Sub-field
+The subset must be closed under the addition and the multplication (and their reciprocal). Hence,
+it must contains 0 and 1.
+*)
+
+Section subfield_def.
+
+Context {Emult : Mult E} {Eone : One E} {Eap : Apart E} {Lrecip : Recip E} {Ef : Field E}.
+
+(**
+We define the restrictions for the subset [F] : 
+*)
+
+Context {Hplus : ClosedOp plus}.
+Context {Hmult : ClosedOp mult}.
+
+Instance Fmult : Mult F.
+    unfold Mult ; refine (fun (x y : F) => exist Fprop ((inj x) [*] (inj y)) _ ).
+    apply closed_internal_op.
+Defined.
+
+Context {Fone : One F} {Fnegate : Negate F} {Fap : Apart F} {Fzero : Zero F} 
+{Frecip : Recip F} {H : Field F}.
+
+Class SubField : Prop := {
+    subf_add_closed :> ClosedOp Eplus ;
+    subf_mult_closed :> ClosedOp Emult ;
+    subf_axioms :> Field F
+}.
+
+End subfield_def.
+
+(** TODO : Add subfield characterization ! *)
+
+End Substructures_definition.
