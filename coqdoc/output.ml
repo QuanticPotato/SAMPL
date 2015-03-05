@@ -525,6 +525,12 @@ module Html = struct
 	  printf "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=%s\"/>\n" !charset;
 	  printf "<link href=\"coqdoc.css\" rel=\"stylesheet\" type=\"text/css\"/>\n";
 	  printf "<title>%s</title>\n</head>\n\n" !page_title;
+          printf "<script type=\"text/x-mathjax-config\">\n";
+          printf "MathJax.Hub.Config({extensions: [\"tex2jax.js\"],jax: [\"input/TeX\",\"output/HTML-CSS\"],tex2jax: {inlineMath: [[\"$\",\"$\"]]}});";
+          printf "</script>";
+          printf "<script type=\"text/javascript\"";
+          printf "src=\"http://cdn.mathjax.org/mathjax/latest/MathJax.js\">";
+          printf "</script>";
 	  printf "<body>\n\n<div id=\"page\">\n\n<div id=\"header\">\n</div>\n\n";
 	  printf "<div id=\"main\">\n\n"
 	end

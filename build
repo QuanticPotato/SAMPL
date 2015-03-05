@@ -5,7 +5,7 @@ scons -C ./math-classes/src -j8
 
 # Build the Makefile
 touch .depend
-coq_makefile integers.v *.v -R . SAMPL -R ./math-classes/src MathClasses -arg "-R . SAMPL -R ./math-classes/src MathClasses" > Makefile
+coq_makefile functions.v lists.v reals.v structures.v integers.v logic.v limits.v sets.v -R . SAMPL -R ./math-classes/src MathClasses -arg "-R . SAMPL -R ./math-classes/src MathClasses" > Makefile
 
 # Hack to generate the .v.d files in a .dep directory
 mkdir .dep
@@ -13,7 +13,10 @@ sed -i 's/-include $(addsuffix .d,$(VFILES))/-include $(addprefix .dep\/,$(addsu
 sed -i 's/%.v.d: %.v/.dep\/%.v.d: %.v/' Makefile
 sed -i 's/rm -f $(VOFILES) $(VIFILES) $(GFILES) $(VFILES:.v=.v.d) $(VFILES:=.beautified) $(VFILES:=.old)/rm -f $(VOFILES) $(VIFILES) $(GFILES) $(addprefix .dep\/, $(VFILES:.v=.v.d)) $(VFILES:=.beautified) $(VFILES:=.old)/' Makefile
 
+# Hack to use our coqdoc exe
+sed -i 's/COQDOC?=$(COQBIN)coqdoc/COQDOC=.\/coqdoc\/coqdoc/' Makefile
+
 # Make everything ..
 make clean
 make depend
-make
+make -j8

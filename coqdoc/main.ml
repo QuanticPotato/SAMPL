@@ -447,6 +447,7 @@ let gen_mult_files l =
     end
       (* Rq: pour latex et texmacs, une toc ou un index séparé n'a pas de sens... *)
 
+
 let read_glob_file vfile f =
   try Index.read_glob vfile f
   with Sys_error s -> eprintf "Warning: %s (links will not be available)\n" s
