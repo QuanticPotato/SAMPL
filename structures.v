@@ -26,14 +26,14 @@ For every algebraic structures, we are using the definitions available in
 the math-classes project. We try to give some basic example on how to use them. 
 (i.e. prove than such a set and such a binary operation is a group for example 
 Already defined structures :
-- Setoid :       Setoid           (An equivalence relation)
-- Semi-Group :   SemiGroup        (A binary operation)
-- Monoid :       Monoid           (An identity element)
-- Group :        Group            (The opposite of the previous binary operation)
-- Abelian group  AbGroup
-- Ring :         Ring             (A mutiplication monoid)
-- Integral Domain    IntegralDomain
-- Field :        Field            (A apart relation and the reciprocal of the 
+- Setoid :       [Setoid]           (An equivalence relation)
+- Semi-Group :   [SemiGroup]        (A binary operation)
+- Monoid :       [Monoid]           (An identity element)
+- Group :        [Group]            (The opposite of the previous binary operation)
+- Abelian group  [AbGroup]
+- Ring :         [Ring]             (A mutiplication monoid)
+- Integral Domain    [IntegralDomain]
+- Field :        [Field]            (A apart relation and the reciprocal of the 
                                    multiplication operation)
 (They are all defined in MathClasses.interfaces.abstract_algebra.v)
 *)
@@ -65,6 +65,7 @@ Infix "[+]" := plus (at level 50).
 Notation "[--] x" := (negate x) (at level 30).
 Infix "[-]" := minus (at level 50).
 Infix "[*]" := mult (at level 40).
+Notation "[-1] x" := (recip x) (at level 20).
 
 Notation "[0]" := zero.
 Notation "[1]" := one.
@@ -77,7 +78,7 @@ Notation "[-3]" := ([--] ([2] + [1])).
 Notation "[-4]" := ([--] ([3] + [1])).
 
 (**
-We define a few rewriting lemmas :
+We define a few rewriting lemmas and tactics :
 *)
 
 Section rewriting_lemmas.
@@ -103,7 +104,35 @@ Proof.
     auto.
 Qed.
 
+(**
+If [E] is a group, it might be usefull to rewrite an equality (in an hypothesis) of members of this group, with 
+the same equality multiplied (i.e. applied with the group [SgOp]) with an operand (of type E).
+For example, if we have the hypothesis [H : x [=] y], the call [group_op H z] will rewrite [H] to [H : x[*]z [=] y[*]z]
+(assuming [z] is of type [E]).
+! The [SgOp] operation must be proper !
+*)
+
 End rewriting_lemmas.
+
+Ltac group_op H operand op :=
+  let Htmp := fresh in 
+    unfold equiv in H ; (* If we don't unfold, the match fail .. *)
+    match type of H with
+        | ?rel ?v1 ?v2 => (* Analyse the relation type (to retrieve the group type) *)
+            match type of rel with 
+                | Equiv ?E => 
+                match type of operand with 
+                    | E => 
+                        (* We simply rewrite with the original lemma, and then prove by reflexivity *)
+                        assert ((op v1 operand) [=] (op v2 operand)) as Htmp ; [(rewrite H ; reflexivity) | idtac] ;
+                        (* Then we rename the new hypothesis *)
+                        clear H ; rename Htmp into H
+                    | _ => idtac "The operand must belong to the group !" ; fail
+                    end
+                | _ => idtac "Not the expected group equality !" ; fail
+            end
+        | _ => idtac "Not the expected group equality !" ; fail
+    end.
 
 (**
 We extend this hierarchy with two more structures :
@@ -120,7 +149,7 @@ Context `{Af : Field A}.
 (**
 Before the next structure definitions, we define relations that are valid in [IntegralDomain] :
 (The multiplication of [IntegralDomain] is commutative)
-- Invertibility : [x] is invertible if $$\exists y \in A, xy = yx = 1$$, and then [y] is its inverse element.
+- Invertibility : [x] is invertible if $$\exists y \in A, xy = yx = 1$$, and then [y] is its inverse element. 
   (On only check one equality, because of the commutativity)
   If [x] is invertible, we also say that [x] is a unit.
 - Association relation : [x] is associated to [y] if $$\exists k \in A, k^{-1} \in A \land x=ky$$.
@@ -148,7 +177,6 @@ End Structures_extra_relations.
 (**
 For the previous define these notations :
 - Invertibility : ([x] is invertible) $$\Leftrightarrow$$ ([[@]] [x])
-  (It almost look like such an arrow : $$\circlearrowright$$)
 - Association relation : ([x] is associated to [y]) $$\Leftrightarrow$$ ([x] [[~]] [y])
 - Divisibility relation : ([x] divide [y]) $$\Leftrightarrow$$ ([x] [[|]] [y])
 - Primality relation : ([x] and [y] are relatively prime) $$\Leftrightarrow$$ ([x] [/\] [y])
@@ -351,6 +379,7 @@ Defined.
 (** TODO !! *)
 
 Instance Ee_fprop_proper : Proper (Ee ==> iff) Fprop.
+    repeat red. intros. split ; intro.
 Admitted.
 
 Lemma exist_eq : forall (x y : E)(Hx : Fprop x)(Hy : Fprop y), x[=]y -> 
@@ -385,7 +414,9 @@ of any of the following substructures, it will have to prove that the addition i
 *)
 
 Context {Eplus : Plus E} {Eplus_assoc : Associative Eplus} 
-    {Ezero : Zero E} {Enegate : Negate E} {Eg : Group E}
+    {Ezero : Zero E} {Ezero_left : LeftIdentity Eplus Ezero}
+    {Ezero_right : RightIdentity Eplus Ezero} {Enegate : Negate E} 
+    {Enegate_proper : Proper (respectful Ee Ee) Enegate} {Eg : Group E}
     {Eplus_proper : Proper (Ee ==> Ee ==> Ee) plus}.
 Context {PlusClosed : ClosedOp plus}.
 
@@ -405,7 +436,7 @@ Global Instance Fplus_assoc : Associative Fplus.
     repeat red ; unfold Fplus ; intros ; apply Eplus_assoc.
 Defined.
 
-Lemma inj_ext_plus : forall (x y:F), Eplus (inj x) (inj y) [=] inj (Fplus x y).
+Lemma inj_ext_eplus : forall (x y:F), Eplus (inj x) (inj y) [=] inj (Fplus x y).
 Proof.
     intros ; unfold Fplus ; pose (X:=(inj x[+]inj y)) ; pose (H:=(closed_internal_op x y)).
     assert ((inj (exist Fprop X H)) [=] X). apply sig_simpl ; auto. 
@@ -425,9 +456,13 @@ Global Instance Fplus_proper : Proper (Fe ==> Fe ==> Fe) Fplus.
     now rewrite H2, H3.
 Defined.
 
+Lemma inj_ext_fplus : forall (x y : F), inj (Fplus x y) [=] Eplus (inj x) (inj y).
+Proof.
+    intros ; rewrite inj_ext_eplus ; auto.
+Qed.
+
 (**
-We can now define the Sub-group itself. We then define a "useful characterization" that
-allow to prove only a few axioms (using the fact the addition is closed for $$F$$)
+We can now define the Sub-group itself.
 *)
 
 Context {Fzero : Zero F} {Fnegate : Negate F}.
@@ -438,20 +473,119 @@ Class SubGroup : Prop := {
 
 End subgroup_def.
 
-Section subgroup_criteria.
+(**
+** Sub-ring
+*)
+
+Context {Eplus_comm : Commutative Eplus} {Emult : Mult E} {Emult_assoc : Associative Emult} 
+    {Emult_comm : Commutative Emult} {Eone : One E} {Edistr : LeftDistribute Emult Eplus}.
+Context {MultClosed : ClosedOp Emult} {Emult_proper : Proper (Ee ==> Ee ==> Ee) mult}.
+
+Section subring_def.
+
+Global Instance Fmult : Mult F .
+    unfold Mult ; refine (fun (x y : F) => exist Fprop ((inj x) [*] (inj y)) _ ).
+    apply closed_internal_op.
+Defined.
+
+Global Instance Fmult_assoc : Associative Fmult.
+    repeat red ; intros ; apply Emult_assoc.
+Defined.
+
+Global Instance Fplus_comm : Commutative Fplus.
+    repeat red ; intros ; apply Eplus_comm.
+Defined.
+
+Global Instance Fmult_comm : Commutative Fmult.
+    repeat red ; intros ; apply Emult_comm.
+Defined.
+
+Global Instance Fmult_proper : Proper (Fe ==> Fe ==> Fe) Fmult.
+    (* Unfold the definition *)
+    repeat red ; intros.
+    (* We can prove easily than $$x \cdot_E x_0 =_E y \cdot_E y_0$$ *)
+    assert (mult (inj x) (inj x0) = mult (inj y) (inj y0)) by (rewrite H, H0 ; reflexivity).
+    (* Then, we use [sig_simpl] *)
+    assert ((inj (exist _ (_ (_ x) (_ x0)) (closed_internal_op x x0))) [=] 
+        (mult (inj x) (inj x0))) by exact (sig_simpl _ _ _ _ _).
+    assert ((inj (exist _ (_ (_ y) (_ y0)) (closed_internal_op y y0))) [=] 
+        (mult (inj y) (inj y0))) by exact (sig_simpl _ _ _ _ _).
+    now rewrite H2, H3.
+Defined.
+
+Global Instance Fdistr : LeftDistribute mult plus.
+    repeat red ; intros ; apply Edistr.
+Defined.
 
 (**
-First implication : We suppose that 
-- H1 : $$0_E \in F$$, thus we can build our $$0_F$$.
-- H2 : $$\forall x, y \in F, x + y \in F$$
-- H3 : $$\forall x \in F, x^{-1} \in F$$. We can then define [Fnegate] as the restriction of [Enegate].
-and we prove that (F, +) is a subgroup of $$E$$
+We can now define the Sub-ring itself.
 *)
+
+Context {Fzero : Zero F} {Fnegate : Negate F} {Fone : One F}.
+
+Class SubRing : Prop := {
+    subr_axioms :> Ring F
+}.
+
+End subring_def.
+
+(**
+** Sub-field
+The subset must be closed under the addition and the multplication (and their reciprocal). Hence,
+it must contains 0 and 1.
+*)
+
+Context {Eap : Apart E} {Erecip : Recip E} {Ef : Field E}.
+
+Section subfield_def.
+
+(**
+We define the restrictions for the subset [F] : 
+*)
+
+Global Instance Fapart : Apart F.
+    unfold Apart, relation. refine (fun (x y : F) => (inj x) [#] (inj y)).
+Defined.
+
+
+(**
+We first define an injection [ApartZero F -> ApartZero E] (using [inj]).
+*)
+
+Context {Hplus : ClosedOp plus}.
+Context {Hmult : ClosedOp mult}.
+
+Context {Fone : One F} {Fnegate : Negate F} {Fap : Apart F} {Fzero : Zero F} 
+{Frecip : Recip F} {H : Field F}.
+
+Class SubField : Prop := {
+    subf_add_closed :> ClosedOp Eplus ;
+    subf_mult_closed :> ClosedOp Emult ;
+    subf_axioms :> Field F
+}.
+
+End subfield_def.
+
+(**
+** Substructures characterization
+For all of our previously defined sub-structure, we define a "usefull characterization", that allows to prove 
+a substructure with less axioms.
+All these characterizations are composed of two implications (they are equivalences).
+*)
+
+Section Substructures_criteria.
 
 Section first_implication.
 
+(**
+For the subgroups, we suppose that 
+- H1 : $$0_E \in F$$, thus we can build our $$0_F$$.
+- H2 : $$\forall x, y \in F, x + y \in F$$
+- H3 : $$\forall x \in F, -x \in F$$. We can then define [Fnegate] as the restriction of [Enegate].
+*)
+
 Hypothesis Ezero_F : Fprop Ezero.
-Instance Fzero : Zero F := exist Fprop Ezero Ezero_F.
+Instance Fzero : Zero F := (exist Fprop Ezero Ezero_F).
 
 Hypothesis Fplus_closed : ClosedOp plus.
 
@@ -460,49 +594,140 @@ Instance Fnegate : Negate F.
     unfold Negate. refine (fun x => exist Fprop ([--] (inj x)) _). apply Fnegate_F.
 Defined.
 
-Lemma Subgroup_criteria_1 : SubGroup.
+Lemma subgroup_criteria_1 : SubGroup.
 Proof.
+    assert ((inj (Ezero ↾ Ezero_F)) [=] Ezero) by exact (sig_simpl _ _ _ _ _).
     (* We already proved some axioms with our hypothesis *)
     repeat split ; auto. exact Fplus_assoc. exact Fplus_proper.
+    (* [Fzero] is the left and right identity element : *)
+    repeat red ; intros ; rewrite inj_ext_fplus ; rewrite H.
+      rewrite left_identity ; reflexivity.
+    repeat red ; intros ; rewrite inj_ext_fplus ; rewrite H.
+      rewrite right_identity ; reflexivity.
+    (* We easily prove [Fnegate] is proper because it is just a restriction of [Enegate] : *)
+    repeat red ; intros ; unfold negate ; unfold Fnegate ; unfold negate.  
+      assert ((inj (exist Fprop (Enegate (inj x))(Fnegate_F x)) [=] (Enegate (inj x)))) by exact (sig_simpl _ _ _ _ _).
+      assert ((inj (exist Fprop (Enegate (inj y))(Fnegate_F y)) [=] (Enegate (inj y)))) by exact (sig_simpl _ _ _ _ _).
+      rewrite H1, H2, H0. reflexivity.
     (* TODO *)
 Admitted.
 
+(**
+For the subrings, we moreover suppose that : 
+- H4 : $$1_E \in F$$ thus we can build our $$1_F$$.
+- H5 : $$\forall x, y \in F, x \cdot y \in F$$
+*)
+
+Hypothesis Eone_F : Fprop Eone.
+Instance Fone : One F := (exist Fprop Eone Eone_F).
+
+Hypothesis Fmult_closed : ClosedOp mult.
+
+Lemma subring_criteria_1 : SubRing.
+Proof.
+    (* We use the previous characterization .. *)
+    split. split ; [split ; [ apply subgroup_criteria_1 |
+    (* We already proved some properties (see previous instance) *)
+    exact Fplus_comm] | idtac | exact Fdistr].
+    (* $$(F, \cdot)$$ is a commutative monoid : *)
+    (repeat split ; auto) ; [exact Fmult_assoc | exact Fmult_proper | idtac | idtac 
+        | exact Fmult_comm].
+      (* TODO ! *)
+      admit. admit.
+Qed.
+
+(** 
+For the subfields, we moreover suppose that :
+- H6 : $$\forall x \in F, x \neq 0 \Rightarrow x^{-1} \in F$$
+*)
+
+Hypothesis Frecip_F : forall (x: ApartZero E), Fprop ([-1] x).
+(*Instance Frecip : Recip F.
+    unfold Recip.  refine (fun x => exist Fprop (Erecip x) _). apply Frecip_F.
+Defined.*)
+
+(*Lemma subfield_criteria_1 : SubField. 
+Proof.
+    (* TODO  ! *)
+Admitted.*)
+
 End first_implication.
+
+(**
+For the second implication, we suppose the witness is a substructure, and we prove that it satisfy the 
+previously stated axioms (i.e. H1, H2 ...)
+*)
 
 Section second_implication.
 
 (**
-Second implication : We suppose that 
-- $(F, +) is a subgroup of $$E$$
-and we prove that $$1_E \in F$$, $$\forall x, y \in F, x + y \in F$$ (It is immediate with the defintion
-of the internal addition), $$\forall x \in F, x^{-1} \in F$$.
+For the subgroups, we prove that $$1_E \in F$$, $$\forall x, y \in F, x + y \in F$$ (It is immediate with 
+our defintion of the internal addition of [F]), $$\forall x \in F, -x \in F$$.
 *)
 
 Context `{Fg : SubGroup}.
 
-Lemma Subgroup_criteria_2 : Fprop Ezero /\ (forall (x : F), Fprop (Enegate (inj x))).
+Lemma subgroup_criteria_2 : Fprop Ezero /\ (forall (x : F), Fprop (Enegate (inj x))).
 Proof.
-    (* TODO *)
-Admitted.
-
-(*Lemma Fzero_ezero : inj Fzero [=] Ezero.
-Proof.
-    pose (f0:= inj Fzero) ; pose (f0_opp := Enegate f0).
-    (* First, we prove that $$0_F +_E 0_F = 0_F$$ *)
-    assert (f0 [+] f0 = f0) ; unfold f0. rewrite inj_ext_plus. 
-Check left_identity.
-rewrite left_identity.
-    (* We prove that $$((-0_F) +_E 0_F) +_E 0_F = (-0_F) +_E 0_F = 0_E$$ and that 
+    (* To prove that $$0_E \in F$$, we prove that $$0_E = 0_F$$ *)
+        pose (f0:= inj Fzero0) ; pose (f0_opp := Enegate f0).
+        (* First, we prove that $$0_F +_E 0_F = 0_F$$ *)
+        assert (f0 [+] f0 = f0) ; unfold f0. rewrite inj_ext_eplus. rewrite left_identity. reflexivity.
+        (* We prove that $$((-0_F) +_E 0_F) +_E 0_F = (-0_F) +_E 0_F = 0_E$$ and that 
               $$((-0_F) +_E 0_F) +_E 0_F = 0_F$$ *)
             assert (f0_opp [+] f0 [+] f0 [=] Ezero) by
-                (rewrite <- assoc_charac ; auto ; rewrite H0 ; unfold f0_opp ;  now apply negate_l).
+                (rewrite <- assoc_charac ; auto ; rewrite H ; unfold f0_opp ;  now apply negate_l).
             assert (f0_opp [+] f0 [+] f0 [=] f0). assert (f0_opp[+]f0 [=] Ezero) by now apply negate_l.
-              rewrite H2 ; rewrite left_identity ; reflexivity.
-(* Then, we prove that $$0_E = 0_F$$ by transitivity *) *)
+              rewrite H1 ; rewrite left_identity ; reflexivity.
+        (* Then, we prove that $$0_E = 0_F$$ by transitivity *)
+        assert (Ezero [=] f0). transitivity (plus (plus f0_opp f0) f0) ; auto.
+          split ; intros. rewrite H2 ; unfold f0, inj, sig_injection ; auto.
+    (* Likewise $$0_E \in F$$, we prove $$\forall x \in F, -_Ex \in F$$ by proving that $$-_Ex = -_Fx$$ *)
+        pose (xneg := Enegate (inj x)). pose (xneg' := inj (Fnegate0 x)).
+        (* First, we prove that $$x -_F x = x -_E x$$ *)
+        assert (xneg' [+] (inj x) [=] f0) by (unfold xneg, xneg', f0 ; rewrite inj_ext_eplus ;
+            rewrite left_inverse; unfold mon_unit, zero_is_mon_unit ; reflexivity).
+        assert (xneg [+] (inj x) [=] Ezero) by (unfold plus, xneg ; rewrite left_inverse ; 
+            unfold mon_unit ; reflexivity).
+        assert (xneg' [+] (inj x) [=] xneg [+] (inj x)). rewrite <- H2 in H3. transitivity Ezero ; auto.
+        (* Then we just add $$-_Ex$$ on the right$$ : *)
+        assert (xneg [=] xneg'). group_op H5 xneg Eplus. unfold equiv, plus in H5. 
+          rewrite <- (assoc_charac E Eplus_assoc) in H5. unfold xneg in H5 ; rewrite left_inverse in H5 ;
+          rewrite right_inverse in H5 ; unfold mon_unit, zero_is_mon_unit in H5 ;rewrite left_identity in H5 ;
+          rewrite right_identity in H5 ; rewrite H5 ; reflexivity.
+        unfold xneg in H6 ; rewrite H6 ; unfold xneg', inj, sig_injection ; auto.
+Qed.
+
+(**
+For subrings, we prove that $$1_E \in F$$ thus we can build our $$1_F$$ and
+$$\forall x, y \in F, x \cdot y \in F$$ (It is immediate with our defintion of the internal multiplication of [F]). 
+*)
+
+Context `{Fr : Ring}.
+
+Lemma subring_criteria_2 : Fprop Eone.
+Proof.
+    (* TODO ! *)
+Admitted.
+
+(**
+For subfields, we prove that  $$\forall x \in F, x \neq 0 \Rightarrow x^{-1} \in F$$.
+*)
+
+Lemma subfield_criteria_2 : forall (x: ApartZero E), Fprop ([-1] x).
+Proof.
+    (* TODO ! *)
+Admitted.
 
 End second_implication.
 
-End subgroup_criteria.
+End Substructures_criteria.
+
+End Substructures_definition.
+
+(**
+* Applications
+*)
 
 (**
 For example, we prove that (aZ, +) (with a:Z) are a sub-groups of (Z, +) 
@@ -540,39 +765,4 @@ aZ_subgroup_Z has type CGroup
 Definition aZ_subgroup_Z := Build_SubCGroup Z_as_CGroup z_in_aZ zero_in_aZ plus_aZ inv_aZ.
 *)
 
-(**
-** Sub-field
-The subset must be closed under the addition and the multplication (and their reciprocal). Hence,
-it must contains 0 and 1.
-*)
 
-Section subfield_def.
-
-Context {Emult : Mult E} {Eone : One E} {Eap : Apart E} {Lrecip : Recip E} {Ef : Field E}.
-
-(**
-We define the restrictions for the subset [F] : 
-*)
-
-Context {Hplus : ClosedOp plus}.
-Context {Hmult : ClosedOp mult}.
-
-Instance Fmult : Mult F.
-    unfold Mult ; refine (fun (x y : F) => exist Fprop ((inj x) [*] (inj y)) _ ).
-    apply closed_internal_op.
-Defined.
-
-Context {Fone : One F} {Fnegate : Negate F} {Fap : Apart F} {Fzero : Zero F} 
-{Frecip : Recip F} {H : Field F}.
-
-Class SubField : Prop := {
-    subf_add_closed :> ClosedOp Eplus ;
-    subf_mult_closed :> ClosedOp Emult ;
-    subf_axioms :> Field F
-}.
-
-End subfield_def.
-
-(** TODO : Add subfield characterization ! *)
-
-End Substructures_definition.
