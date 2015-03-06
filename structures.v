@@ -154,9 +154,9 @@ Before the next structure definitions, we define relations that are valid in [In
   If [x] is invertible, we also say that [x] is a unit.
 - Association relation : [x] is associated to [y] if $$\exists k \in A, k^{-1} \in A \land x=ky$$.
 - Divisibility relation : [x] divide [y] if $$\exists a \in A, y = ax$$
-- Relatively prime relation [x] and [y] are relatively prime if $$\forall d \in A, d|x \land d|y \land d$ is invertible.
-- Irreducibility : [p] is irreducible if $x \neq 0$ and [p] is not the product of two elements not invertible.
-- Primality : [x] is prime if $$x \neq 0 \land x$ is not invertible $ \land (\forall a, b \in A, p | ab \Rightarrow p|a \lor p|b)$.
+- Relatively prime relation [x] and [y] are relatively prime if $$\forall d \in A, d|x \land d|y \land d$$ is invertible.
+- Irreducibility : [p] is irreducible if $$x \neq 0$$ and [p] is not the product of two elements not invertible.
+- Primality : [x] is prime if $$x \neq 0 \land x$$ is not invertible $$\land (\forall a, b \in A, p | ab \Rightarrow p|a \lor p|b)$$.
 *)
 
 Definition invertible (x : A) : Prop := exists (y : A), Amult x y = Aone.
@@ -206,11 +206,11 @@ A Unique factorization domain is a unique factorization domain  [R] that respect
    this decomposition is unique :
    If $$q_i$$ are irreducible elements of [A] and $$w$$ a unit and $$x = w q_1 q_2 ... q_m$$ with $$m \geq 0$$,
    then $$m = n$$ and there exists a bijective map $$\phi : \{1, ... ,n\} \rightarrow \{1, ... , m\}$$ such that
-   $$p_i$$ is associated to $$q_{\phi(i)}.
+   $$p_i$$ is associated to $$q_{\phi(i)}$$.
    This definition is hard to formalize (the uniqueness part), thus we use the following equivalent definition :
    Every non-zero [x] or [R] can be written as a product of a unit and prime elements of [R]. (we then prove the 
    equivalence between these two definitions).
-   Then, every elements of [R] can be written as : $$a = u \prod\limits_{i \in I} p_i^{v_p_i ( a)}$$ (Where $$v_p_i (a)$$
+   Then, every elements of [R] can be written as : $$a = u \prod\limits_{i \in I} p_i^{v_{p_i} ( a)}$$ (Where $$v_{p_i} (a)$$
    is the valuation).
 *)
 
@@ -423,7 +423,7 @@ Context {PlusClosed : ClosedOp plus}.
 Section subgroup_def.
 
 (**
-The addition in $$F$$ is just the restriction of the addition in $$E$$ : $$+_F = {+_E}_{|F \times F}$$.
+The addition in $$F$$ is just the restriction of the addition in $$E : +F = {+E}_{|F \times F}$$.
 (As for [Equiv], we then prove this operation is [Associative] and [Proper])
 *)
 
@@ -446,7 +446,7 @@ Qed.
 Global Instance Fplus_proper : Proper (Fe ==> Fe ==> Fe) Fplus.
     (* Unfold the definition *)
     repeat red ; intros.
-    (* We can prove easily than $$x +_E x_0 =_E y +_E y_0$$ *)
+    (* We can prove easily than $$x +E x_0 =E y +E y_0$$ *)
     assert (plus (inj x) (inj x0) = plus (inj y) (inj y0)) by (rewrite H, H0 ; reflexivity).
     (* Then, we use [sig_simpl] *)
     assert ((inj (exist _ (_ (_ x) (_ x0)) (closed_internal_op x x0))) [=] 
@@ -503,7 +503,7 @@ Defined.
 Global Instance Fmult_proper : Proper (Fe ==> Fe ==> Fe) Fmult.
     (* Unfold the definition *)
     repeat red ; intros.
-    (* We can prove easily than $$x \cdot_E x_0 =_E y \cdot_E y_0$$ *)
+    (* We can prove easily than $$x \cdot x_0 =E y \cdot y_0$$ *)
     assert (mult (inj x) (inj x0) = mult (inj y) (inj y0)) by (rewrite H, H0 ; reflexivity).
     (* Then, we use [sig_simpl] *)
     assert ((inj (exist _ (_ (_ x) (_ x0)) (closed_internal_op x x0))) [=] 

@@ -20,7 +20,9 @@ We then define the [*_pInf] and [*_mInf] predicate that indicates whether [n] is
 we cannot define an extra symbol, because we want to keep the integer ([nat] or [Z] type) :
 - [x] is $$+\infty$$ if $$\forall y \in \mathbb{Z}, x > y$$
 - [x] is $$-\infty$$ if $$\forall y \in \mathbb{Z}, x < y$$
-(We also define these definition for $$\mathbb{N}). One must be aware that these predicates only give an equivalent of the
+(We also define these definition for $$\mathbb{N}$$). 
+
+One must be aware that these predicates only give an equivalent of the
 math symbol $$-\infty$$ and $$+\infty$$. They should only be used for conventions (Otherwise it is totally incoherent).
 *)
 

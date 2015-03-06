@@ -17,12 +17,11 @@ Require Import ZArith.
 ** Definition
 We define partial functions with a Record structure : it allows to define a condition on the domain of definition.
 We only deal with partial functions of the form : $$\in \mathcal{F}(I, \mathbb{E}), I \subset \mathbb{E}$$, where
-$$\mathbb{E}$$ is a "super-set" (for example $$\mathbb{R}$ or $$\mathbb{Z}$$).
+$$\mathbb{E}$$ is a "super-set" (for example $$\mathbb{R}$$ or $$\mathbb{Z}$$).
 To build such a partial function (using [Build_PartFunct]), one needs (In this order) :
 - A type [E], which  is the "super-set" $$\mathbb{E}$$
 - A predicate [E -> Prop] that describes the domain of definition of the partial function.
-- The function itself (The whole Record coerces to this type). It must includes the domain 
-predicate (An example is given later in the file).
+- The function itself (The whole Record coerces to this type). It must includes the domain predicate (An example is given later in the file).
 *)
 
 Record PartFunct (E : Type) : Type := {
@@ -67,7 +66,7 @@ Definition restriction (E : Type)(f : PartFunct E)(restr : E -> Prop) :=
 
 (**
 * Real functions
-We here deal with partial functions $$I \rightarrow \mathbb{R}$$, where $$I$$ is a subset of $$\mathbb{R}.
+We here deal with partial functions $$I \rightarrow \mathbb{R}$$, where $$I$$ is a subset of $$\mathbb{R}$$.
 (We also these functions in other chapters, unless otherwise stated)
 We try as much as possible using the least hypothesis we can (e.g., only use COrdField for 
 definitions/lemma that only require an order relation, instead of the full real structure.
@@ -117,10 +116,10 @@ Let I := Dom R f.
 
 (**
 We define the monotonicity of [f] as follows : 
-- Increasing : $$\forall x, y \in I, x<y \Rigtharrow f(x) \leq f(y)$$ 
-- Strictly increasing : $$\forall x, y \in I, x<y \Rigtharrow f(x) < f(y)$$ 
-- Decreasing : $$\forall x, y \in I, x<y \Rigtharrow f(x) \geq f(y)$$ 
-- Strictly decreasing : $$\forall x, y \in I, x<y \Rigtharrow f(x) > f(y)$$
+- Increasing : $$\forall x, y \in I, x<y \Rightarrow f(x) \leq f(y)$$ 
+- Strictly increasing : $$\forall x, y \in I, x<y \Rightarrow f(x) < f(y)$$ 
+- Decreasing : $$\forall x, y \in I, x<y \Rightarrow f(x) \geq f(y)$$ 
+- Strictly decreasing : $$\forall x, y \in I, x<y \Rightarrow f(x) > f(y)$$
 - Constant : $$\forall x, y \in I, f(x) = f(y)$$
 - Periodic (of period [T]) : $$\forall x \in \mathbb{I}, \forall k \in \mathbb{Z}, x+kT \in I \Rightarrow f(x+kT) = f(x)
 *)

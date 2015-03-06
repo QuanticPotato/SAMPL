@@ -137,7 +137,8 @@ Ltac different_cases H :=
 We here introduce the notion of infinity for the real numbers.
 We simply define it as a predicate, to be able to deal with it as a "classical number"
 (i.e. use the type [R])
-/!\ The value [x] of these definitions should not be used /!\
+
+/!\ The value [x] of these definitions should be used very carrefuly /!\
 *)
 
 Definition pInfinite (x : R) : Prop := forall (y : R), (x > y)%R.
@@ -148,10 +149,10 @@ Definition real (x : R) : Prop :=  ~ (pInfinite x) /\ ~ (mInfinite x).
 [R_inf] is a helper type. It is intended to be used in match constructions.
 Using example in a Definition :
  [Definition test (x : R) := 
-    forall (inf_x : R_inf x),
-      match inf_x with
-        | pInf H_pInfinite =>  True
-        | mInf H_mInfinite =>  True
+    forall (inf_x : R_inf x), 
+      match inf_x with \n
+        | pInf H_pInfinite =>  True 
+        | mInf H_mInfinite =>  True 
         | xReal H_not_pInfinite H_not_mInfinite =>  True
       end. ]
 *)

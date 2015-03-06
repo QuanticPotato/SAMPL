@@ -66,14 +66,14 @@ Ltac absurd_reasoning :=
 
 (**
 When proving uniqueness, we often use an absurd reanning (i.e. suppose that two object
-satisfy a predicate, and prove they are equal). The following tactic allow to do this easily :
+satisfy a predicate, and prove they are equal). The following tactic allows to do this easily :
 *)
 
 Ltac uniqueness_reasoning n1 n2 H1 H2 :=
     intros ; unfold uniqueness ; intros n1 n2 H1 H2.
 
 (**
-To prove a "if and only if" statement, we prove the two implications :
+To prove an "if and only if" statement, we prove the two implications :
 (The tactic apply to the current goal)
 *)
 
@@ -130,6 +130,7 @@ Qed.
 
 (**
 The tactic [hintro] apply to an hypothesis of the form [forall (x:T), ...].
+
 Usage : [hintro H y] (where [y] is of type [T]) : it replaces every occurences of [x] by [y].
 *)
 

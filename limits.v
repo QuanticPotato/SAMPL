@@ -20,7 +20,8 @@ Section adherent_point_def.
 
 (**
 An adherent point [a] (also called closure point or contact point) of a subset [I] is such that :
-$$\forall \epsilon > 0, ]a - \epsilon, a + \epsilon[ \cap I \neq \emptyset$$.
+$$\forall \epsilon > 0, ]a - \epsilon, a + \epsilon\lbrack \cap I \neq \emptyset$$.
+
 For the reals $$\mathbb{R}$$, [a] is adherent to a subset $$I \subset \mathbb{R}$$ if and
 only if $$a \in I$$ or $$a$$ is a bound of $$I$$.
 *)
@@ -47,10 +48,10 @@ Section Limit_definitions.
 (**
 ** Predicate true at the neighbourhood of $$x_0$$
 The predicate [P x] (defined on $$I \subset \mathbb{R}$$) is true at the neighbourhood of 
-$$x_0 \in \overline{\mathbb{R}}$$ if : 
-- $$x_0$$ is finite : $$\exists \delta > 0, \forall x \in \[x_0 - \delta, x_0 + \delta \] \cap I, P(x) \quad \mathrm{true}$$
-- $$x_0 = +\infty$$ : $$\exists a \in \mathbb{R}, \forall x \in \[a, +\infty \[ \cap I, P(x) \quad \mathrm{true}$$
-- $$x_0 = -\infty$$ : $$\exists a \in \mathbb{R}, \forall x \in \]-\infty, a\] \cap I, P(x) \quad \mathrm{true}$$
+$$x_0 \in \overline{\mathbb{R}}$$ if
+- $$x_0$$ is finite : $$\exists \delta > 0, \forall x \in \lbrack x_0 - \delta, x_0 + \delta \rbrack \cap I, P(x) \quad \mathrm{true}$$
+- $$x_0 = +\infty$$ : $$\exists a \in \mathbb{R}, \forall x \in \lbrack a, +\infty \lbrack \cap I, P(x) \quad \mathrm{true}$$
+- $$x_0 = -\infty$$ : $$\exists a \in \mathbb{R}, \forall x \in \rbrack-\infty, a\rbrack \cap I, P(x) \quad \mathrm{true}$$
 *)
 
 Section neighbourhood_def.
@@ -80,26 +81,18 @@ Let I := Dom R f.
 We define the limit [l] of the function [f x] as [x] approaches [x0] with 
 9 different cases (depending on [l] and [x0]), and we assign a predicate to each case :
 - [x0] is finite :
-  - [l] is finite : $$x_0 \in \mathbb{R}, \lim\limits_{x \to x_0} f(x) = l \in \mathbb{R}$$ :
-$$\forall \epsilon>0, \exists \delta>0, \forall x \in \[x_0 - \delta, x_0 + \delta\] \cap I, |f(x)-l| \leq \epsilon$$
-  - [l] is $$+\infty$$ : $$x_0 \in \mathbb{R}, \lim\limits_{x \to x_0} f(x) = +\infty$$ :
-$$\forall A \in \mathbb{R}, \exists \delta>0, \forall x \in \[x_0 - \delta, x_0 + \delta\] \cap I, f(x) \geq A$$
-  - [l] is $$-\infty$$ : $$x_0 \in \mathbb{R}, \lim\limits_{x \to x_0} f(x) = -\infty$$ :
-$$\forall A \in \mathbb{R}, \exists \delta>0, \forall x \in \[x_0 - \delta, x_0 + \delta\] \cap I, f(x) \leq A$$
+  - [l] is finite : $$x_0 \in \mathbb{R}, \lim\limits_{x \to x_0} f(x) = l \in \mathbb{R}$$ : $$\forall \epsilon>0, \exists \delta>0, \forall x \in \lbrack x_0 - \delta, x_0 + \delta\rbrack \cap I, |f(x)-l| \leq \epsilon$$
+  - [l] is $$+\infty$$ : $$x_0 \in \mathbb{R}, \lim\limits_{x \to x_0} f(x) = +\infty$$ : $$\forall A \in \mathbb{R}, \exists \delta>0, \forall x \in \lbrack x_0 - \delta, x_0 + \delta\rbrack \cap I, f(x) \geq A$$
+  - [l] is $$-\infty$$ : $$x_0 \in \mathbb{R}, \lim\limits_{x \to x_0} f(x) = -\infty$$ : $$\forall A \in \mathbb{R}, \exists \delta>0, \forall x \in \lbrack x_0 - \delta, x_0 + \delta\rbrack \cap I, f(x) \leq A$$
 - [x0] is $$+\infty$$ :
-  - [l] is finite : $$\lim\limits_{x \to +\infty} f(x) = l \in \mathbb{R}$$ :
-$$\forall \epsilon>0, \exists a \in \mathbb{R}, \forall x \in I, x \geq a \Rightarrow |f(x)-l| \leq \epsilon$$
-  - [l] is $$+\infty$$ : $$\lim\limits_{x \to +\infty} f(x) = +\infty$$ :
-$$\forall A \in \mathbb{R}, \exists a \in \mathbb{R}, \forall x \in I, x \geq a \Rightarrow f(x) \geq A$$
-  - [l] is $$-\infty$$ : $$\lim\limits_{x \to +\infty} f(x) = -\infty$$ :
-$$\forall A \in \mathbb{R}, \exists a \in \mathbb{R}, \forall x \in I, x \geq a \Rightarrow f(x) \leq A$$
+  - [l] is finite : $$\lim\limits_{x \to +\infty} f(x) = l \in \mathbb{R}$$ : $$\forall \epsilon>0, \exists a \in \mathbb{R}, \forall x \in I, x \geq a \Rightarrow |f(x)-l| \leq \epsilon$$
+  - [l] is $$+\infty$$ : $$\lim\limits_{x \to +\infty} f(x) = +\infty$$ : $$\forall A \in \mathbb{R}, \exists a \in \mathbb{R}, \forall x \in I, x \geq a \Rightarrow f(x) \geq A$$
+  - [l] is $$-\infty$$ : $$\lim\limits_{x \to +\infty} f(x) = -\infty$$ : $$\forall A \in \mathbb{R}, \exists a \in \mathbb{R}, \forall x \in I, x \geq a \Rightarrow f(x) \leq A$$
 - [x0] is $$-\infty$$ :
-  - [l] is finite : $$\lim\limits_{x \to -\infty} f(x) = l \in \mathbb{R}$$ :
-$$\forall \epsilon>0, \exists a \in \mathbb{R}, \forall x \in I, x \leq a \Rightarrow |f(x)-l| \leq \epsilon$$
-  - [l] is $$+\infty$$ : $$\lim\limits_{x \to -\infty} f(x) = +\infty$$ :
-$$\forall A \in \mathbb{R}, \exists a \in \mathbb{R}, \forall x \in I, x \leq a \Rightarrow f(x) \geq A$$
-  - [l] is $$-\infty$$ : $$\lim\limits_{x \to -\infty} f(x) = -\infty$$ :
-$$\forall A \in \mathbb{R}, \exists a \in \mathbb{R}, \forall x \in I, x \leq a \Rightarrow f(x) \leq A$$
+  - [l] is finite : $$\lim\limits_{x \to -\infty} f(x) = l \in \mathbb{R}$$ : $$\forall \epsilon>0, \exists a \in \mathbb{R}, \forall x \in I, x \leq a \Rightarrow |f(x)-l| \leq \epsilon$$
+  - [l] is $$+\infty$$ : $$\lim\limits_{x \to -\infty} f(x) = +\infty$$ : $$\forall A \in \mathbb{R}, \exists a \in \mathbb{R}, \forall x \in I, x \leq a \Rightarrow f(x) \geq A$$
+  - [l] is $$-\infty$$ : $$\lim\limits_{x \to -\infty} f(x) = -\infty$$ : $$\forall A \in \mathbb{R}, \exists a \in \mathbb{R}, \forall x \in I, x \leq a \Rightarrow f(x) \leq A$$
+
 (We use [predicate_neighbourhood] to match [x0]).
 *)
 
@@ -116,7 +109,7 @@ Definition limitExists (x0 : R) : Prop := exists (l : R), limit x0 l.
 End limit_def.
 
 (**
-We also define one-sided limits (When x_0 \in \mathbb{R}) : 
+We also define one-sided limits (When $$x_0 \in \mathbb{R}$$) : 
 - When $x$ approach $x_0$ from above (right) :
 $\lim\limits_{x \to x_0^+} f(x) = \left. \lim\limits_{x_0} f \right|_{I \cap ] x_0, +\infty[} = l$
 - When $x$ approach $x_0$ from below (left) :
@@ -197,7 +190,7 @@ Theorem limit_uniqueness : limitExists f x0 -> forall (l1 l2 : R), (limit f x0 l
 Proof.
     intros H l1 l2. iff_reasoning ; intros ; destruct H0 ; split ; [idtac | now left | idtac | idtac].
     (* First implication *)
-        (* There are 27 cases. We only prove< the case $$x_0 \in \mathbb{R}$$ and $$l \in \mathbb{R}$$ *)
+        (* There are 27 cases. We only prove the case $$x_0 \in \mathbb{R}$$ and $$l \in \mathbb{R}$$ *)
         inf_cases x0 ; [admit | admit | inf_cases l1 ; [admit | admit | inf_cases l2 ; [admit | admit | idtac]]].
         (* We reason by the absurd (we suppose [l1 <> l2]). We deal with the case [l1 < l2] *)
         absurd_reasoning ; different_cases H5 ; [idtac | admit].
