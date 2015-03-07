@@ -39,6 +39,38 @@ link : everything should be based on other part of the project (unless it is a n
 topic). But once again, please avoid adding content that exceeds the "level" of 
 the rest of the project.
 
+Installing
+----------
+
+The project comes with a linux shell script to generate the Makefile : (it uses
+coq_makefile)
+```
+./build
+```
+If may launch make if nothing went wrong.
+
+If you modified some files, you can rebuild the whole project with 
+```
+make -jX # Where X is the number of cores
+```
+If you added some files, you will have to edit the build script, and reprocess it.
+
+The project use a custom version of coqdoc (available in the coqdoc/ directory) :
+you have to build it first :
+```
+cd coqdoc
+./build
+cd ..
+```
+You can then generate the HTML documentation with :
+```
+make html
+```
+
+/!\ Documentation comment are only purposed for HTML documentation, because it uses
+Mathjax /!\
+
+
 
 License and rights
 ------------------
