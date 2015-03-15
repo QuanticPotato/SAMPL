@@ -72,7 +72,6 @@ subset predicates.
 Section sigmatypes.
 
 Variable Iprop : E -> Prop.
-Variable I : sig Iprop.
 
 (**
 We define an injection from the subset to the carrier type. (It might be useful in
@@ -81,18 +80,23 @@ definitions to avoid any type problems)
 
 Definition sig_injection := @proj1_sig E Iprop.
 
-Let sig := sig_injection.
+Let inj := sig_injection.
+Let I:= sig Iprop.
 
 (**
 The [exist] constructor of the [sig] type is the opposite of our [sig_injection].
 Thus, the expression [sig (exist ...)] might be simplified : 
 *)
 
-Lemma sig_simpl : forall `(Reflexive E R) (x:E)(Hx : Iprop x), R (sig (exist Iprop x Hx)) x.
+Lemma sig_simpl : forall `(Reflexive E R) (x:E)(Hx : Iprop x), R (inj (exist Iprop x Hx)) x.
 Proof.
-    intros. unfold sig. unfold sig_injection. unfold proj1_sig. reflexivity.
-Qed. 
+    intros. unfold inj. unfold sig_injection. unfold proj1_sig. reflexivity.
+Qed.
 
+Definition full_sig := forall (x:E), Iprop x.
+
+Lemma full_sig_comp (P : E->Prop) : full_sig -> (forall (x:E), P x) -> (forall (x:I), P (inj x)).
+Admitted.
 End sigmatypes.
 
 End Sets_definitions.

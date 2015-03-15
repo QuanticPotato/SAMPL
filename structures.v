@@ -320,7 +320,6 @@ belongs to the subset), and a sigma type [F].
 Section Substructures_definition.
 
 Variable E:Set.
-
 Variable Fprop : E->Prop.
 Let F:= sig Fprop.
 Let inj := sig_injection E Fprop.
@@ -726,43 +725,102 @@ End Substructures_criteria.
 End Substructures_definition.
 
 (**
+** Theorems
+*)
+
+Section Substructures_theorems.
+
+Variable E:Set.
+Context {Ee : Equiv E} {Eequiv_refl : Reflexive Ee} {Ezero : Zero E} {Eplus : Plus E}
+    {Eplus_assoc : Associative Eplus} {Ezero_left : LeftIdentity Eplus Ezero}
+    {Ezero_right : RightIdentity Eplus Ezero} {Enegate : Negate E} 
+    {Enegate_proper : Proper (respectful Ee Ee) Enegate} {Eg : Group E}
+    {Eplus_proper : Proper (Ee ==> Ee ==> Ee) plus}
+    {Ezero_right_inverse : RightInverse Eplus Enegate Ezero}
+    {Ezero_left_inverse : LeftInverse Eplus Enegate Ezero}.
+
+Let Fprop (x:E) := True.
+Lemma Fprop_full : full_sig E Fprop.
+Proof.
+    repeat red. auto.
+Qed.
+
+Let inj := sig_injection E Fprop.
+Let F:= sig Fprop.
+
+Instance Fplus_closed : ClosedOp E Fprop plus.
+    repeat red. auto.
+Defined.
+
+Instance Fzero0 : Zero F.
+    refine (exist Fprop Ezero _). unfold Fprop ; auto.
+Defined.
+
+Instance Fnegate0 : Negate F.
+    unfold Negate ; refine (fun x => exist Fprop ([--] (inj x)) _).
+    unfold Fprop ; auto.
+Defined.
+
+Theorem group_is_subgroup : Group E -> SubGroup E Fprop.
+Proof.
+    intros. repeat split ; auto ; (repeat (unfold equiv ; unfold Fe ; auto)) ;
+        unfold Fprop ; repeat red ; intros.
+    apply Eplus_assoc. apply Eplus_proper ; auto.
+    apply Ezero_left. apply Ezero_right.
+    apply Enegate_proper ; auto.
+    apply Ezero_left_inverse. apply Ezero_right_inverse.
+Qed.
+
+End Substructures_theorems.
+
+(**
 * Applications
 *)
 
+Section Substructures_applications.
+
+Require Export MathClasses.implementations.ZType_integers.
+Context {zdistr : RightDistribute mult plus}.
 (**
-For example, we prove that (aZ, +) (with a:Z) are a sub-groups of (Z, +) 
+We define $$a \mathbb{Z} = \{ a \cdot k \mid k \in \mathbb{Z} \}$$ (with $$a \in \mathbb{Z}$$), 
+and we prove that $$(a \mathbb{Z}, \cdot)$$ is a sub-group of $$(\mathbb{Z}, \cdot)$$. 
 *)
 
-(*Variable a:Z.
-Definition z_in_aZ (z:Z_as_CGroup) : CProp := exists (k : Z), z = k*a.
+Variable a:Z.
+Definition z_in_aZ (z:Z) : Prop := exists (k : Z), z [=] k [*] a.
+Let aZ := sig z_in_aZ.
+Let inj := sig_injection Z z_in_aZ.
 
 (**
-Neutral of (Z,+) belongs to aZ (It's 0) 
+The identity of $$(\mathbb{Z}, \cdot)$$ belongs to $$a \mathbb{Z}$$. 
 *)
 Lemma zero_in_aZ : z_in_aZ [0].
-    unfold z_in_aZ ; exists 0 ; simpl ; reflexivity.
+Proof.
+    exists 0 ; simpl ; reflexivity.
 Qed.
+Instance aZ_Zero : Zero aZ := Fzero _ _ zero_in_aZ.
 
 (**
-Addition is well defined (i.e. internal) in aZ 
+$$a \mathbb{Z}$$ is closed under $$\mathbb{Z}$$ addition :
 *)
-Lemma plus_aZ : bin_op_pres_pred Z_as_CGroup z_in_aZ Zplus_is_bin_fun.
-    unfold bin_op_pres_pred ; unfold z_in_aZ ; intros ; destruct H ; destruct H0. 
-    exists (x1 + x0) ; simpl ; rewrite H ; rewrite H0 ; ring.
+Instance aZ_add_closed : ClosedOp Z z_in_aZ plus.
+Proof.
+    destruct x, y ; unfold z_in_aZ in z, z0 ; destruct z, z0 ;  exists (x1 [+] x2) ; simpl. 
+    rewrite e, e0. rewrite zdistr. reflexivity.
 Qed.
 
-(**
-Every elements of aZ is symmetrizable with the addition 
-*)
-Lemma inv_aZ : un_op_pres_pred Z_as_CGroup z_in_aZ Zopp_is_fun.
-    unfold un_op_pres_pred ; unfold z_in_aZ ; intros ; simpl.
-    destruct H ; exists (-x0) ; rewrite H ; ring.
+Lemma aZ_negate : forall x : aZ, z_in_aZ ([--] inj x).
+Proof.
+    intros ; unfold z_in_aZ ; destruct x ; destruct z.
+    exists ([--] x0). simpl. rewrite e. unfold mult, negate. 
+      unfold stdlib_binary_integers.Z_mult, stdlib_binary_integers.Z_negate. 
+      rewrite Z.mul_opp_l ; reflexivity.
 Qed.
 
-(**
-aZ_subgroup_Z has type CGroup 
-*)
-Definition aZ_subgroup_Z := Build_SubCGroup Z_as_CGroup z_in_aZ zero_in_aZ plus_aZ inv_aZ.
-*)
+Instance aZ_neg : Negate aZ := Fnegate _ _ aZ_negate.
 
+Instance aZ_subgroup : SubGroup Z z_in_aZ.
+    apply subgroup_criteria_1.
+Defined.
 
+End Substructures_applications.
