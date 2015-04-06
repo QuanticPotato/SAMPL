@@ -618,7 +618,7 @@ For the subrings, we moreover suppose that :
 *)
 
 Hypothesis Eone_F : Fprop Eone.
-Instance Fone : One F := (exist Fprop Eone Eone_F).
+Global Instance Fone : One F := (exist Fprop Eone Eone_F).
 
 Hypothesis Fmult_closed : ClosedOp mult.
 

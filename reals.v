@@ -6,7 +6,7 @@
 *                                *  terms of the GPL License Version 2 *
 ***********************************************************************)
 
-Require Export structures.
+Require Export SAMPL.functors.
 
 (**
 * Definitions

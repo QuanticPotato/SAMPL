@@ -6,7 +6,7 @@
 *                                *  terms of the GPL License Version 2 *
 ***********************************************************************)
 
-Require Export SAMPL.structures.
+Require Export SAMPL.functions.
 
 Global Generalizable All Variables.
 
@@ -57,13 +57,13 @@ We must define the 4 last axioms, and then we can define the structure itself :
 *)
 
 Class ScalarMultCompatibility : Prop := 
-    scalar_mult_comp : forall (a b : K)(v : E), scalar_mult a (scalar_mult b v) = scalar_mult (a * b) v.
+    scalar_mult_comp : forall (a b : K)(v : E), scalar_mult a (scalar_mult b v) = scalar_mult (a [*] b) v.
 
 Class ScalarMultDistr_Vector : Prop := scalar_mult_distr_vector : 
     forall (a : K)(u v : E), scalar_mult a (sg_op u v) = sg_op (scalar_mult a u) (scalar_mult a v).
 
 Class ScalarMultDistr_Field : Prop := scalar_mult_distr_field : 
-    forall (a b : K)(v : E), scalar_mult (a + b) v = sg_op (scalar_mult a v) (scalar_mult b v).
+    forall (a b : K)(v : E), scalar_mult (a [+] b) v = sg_op (scalar_mult a v) (scalar_mult b v).
 
 Class VectorSpace : Prop := {
     vs_add_ass : Associative Eplus ;
@@ -377,7 +377,150 @@ End additional_svs.
 
 End vector_definitions.
 
+Open Scope nat_scope.
+
 (**
-* Subset of a vector-space
+* Vector set
+In this section, [S] will be a set of vector (i.e. $$S = (e_1, ... e_n) \in E^n$$).
 *)
 
+Section vector_set.
+
+Context (K:Set) {Ke : Equiv K} {Kplus : Plus K} {Kmult : Mult K} {Kzero : Zero K} {Kone : One K}
+    {Knegate : Negate K} {Kap : Apart K} {Krecip : Recip K} {Kf : Field K}.
+
+Context (E:Set) {Ee : Equiv E} {Eadd : Plus E} {Ezero : Zero E} {Eneg : Negate E} {Eg : AbGroup E}
+    {Emult : ScalarMult K E} {Eh : VectorSpace K E}.
+
+Variable n : nat.
+Variable S : nat -> E.
+
+Hypothesis S_finite : forall (k:nat), k>n -> (S k) [=] [0].
+
+Section vector_basis.
+Section vector_span.
+
+(**
+A vector span is a subset of [E] defined as follows :
+$$\mathrm{span}(S) = \left\{ \sum\limits_{i = 1}^k \lambda_i e_i \mid k \in \mathbb{N}, \lambda_i \in \mathbb{K} \right\}$$.
+(It is the set of all finite combinations of elements of [S]).
+We note this subset $$\mathrm{span}(S)$$.
+*)
+
+Definition vector_span_prop (x:E) := exists (l : nat->K), x [=] sum E n (fun i => (l i) [x] (S i)).
+
+(**
+$$\mathrm{span}(S)$$ is a vector-subspace of [E].
+*)
+
+Let vector_span := sig vector_span_prop.
+
+Instance span_closed : ClosedOp E vector_span_prop plus.
+    (* TODO *)
+Admitted.
+Instance span_plus : Plus vector_span := Fplus E vector_span_prop.
+
+Lemma zero_in_span : vector_span_prop Ezero.
+Proof.
+    (* TODO *)
+Admitted.
+Instance span_zero : Zero vector_span := Fzero E vector_span_prop zero_in_span.
+
+Instance span_scalar_mult : ScalarMult K svs_sum.
+    (* TODO *)
+Admitted.
+
+Instance span_svs : VectorSubspace K E vector_span_prop.
+    (* TODO *)
+Admitted.
+
+(**
+A span is a generating set if $$\mathrm{span}(S) = E$$.
+*)
+
+Definition generating_span := forall (v:E), vector_span_prop v.
+
+End vector_span.
+
+(**
+A set of vectors is linearly independent if 
+$$\forall (\lambda_1, ... \lambda_n) \in \mathbb{K}^n, \sum\limits_{i = 1}^n \lambda_i e_i = 0$$,
+then $$\lambda_1 = ... = \lambda_n = 0_{\mathbb{K}}$$.
+*) 
+
+Definition linearly_independent := forall (l : nat -> K), sum E n (fun i => (l i) [x] (S i)) [=] [0]
+    -> (forall (i:nat), (l i) [=] [0]).
+
+(**
+A set of vectors [S] is a basis of [E] if [S] is linearly indepedent and if
+[S] spans [E] (i.e. if [S] is a generating set of [E]).
+*)
+
+Definition basis := linearly_independent /\ generating_span.
+
+(**
+With our previous definitions, we can define the following equivalences :
+- [S] is linearly independent $$\Leftrightarrow$$ there is unicity of 
+$(\lambda_1, ... \lambda_n) \in \mathbb{K}^n$$ such that forall $$v \in E$$,
+$$v = \lambda_1 e_1 + ... + \lambda_n e_n$$.
+- [S] is a generating set of [E] $$\Leftrightarrow $$ there exists
+$(\lambda_1, ... \lambda_n) \in \mathbb{K}^n$$ such that forall $$v \in E$$,
+$$v = \lambda_1 e_1 + ... + \lambda_n e_n$$.
+- [S] is a basis $$\Leftrightarrow \forall v\ in E, \exists ! (\lambda_1, ... \lambda_n) \in \mathbb{K}^n,
+v = \lambda_1 e_1 + ... + \lambda_n e_n$$.
+*)
+
+Lemma linearly_independence_charac : iff linearly_independent
+    (uniqueness (fun l => forall (v:E), v [=] sum E n (fun i => (l i) [x] (S i)))).
+Proof.
+    (* TODO *)
+Admitted.
+
+Lemma generating_charac : iff generating_span
+    (exists (l : nat->K), forall (v:E), v [=] sum E n (fun i => (l i) [x] (S i))).
+Proof.
+    (* TODO *)
+Admitted.
+
+Lemma basis_charac : iff basis (exists! (l : nat->K), forall (v:E), v [=] sum E n (fun i => (l i) [x] (S i))).
+Proof.
+    iff_reasoning ; intros.
+    (* First implication*)
+        unfold basis in H ; unfold linearly_independent, generating_span in H ; destruct H.
+        admit. (* TODO *)
+    (* Second imlication *)
+        unfold basis ; unfold linearly_independent, generating_span ; split ; intros.
+        admit. admit. (* TODO *) 
+Qed.
+
+End vector_basis.
+
+End vector_set.
+
+Section linearly_dependent.
+
+Context (K:Set) {Ke : Equiv K} {Kplus : Plus K} {Kmult : Mult K} {Kzero : Zero K} {Kone : One K}
+    {Knegate : Negate K} {Kap : Apart K} {Krecip : Recip K} {Kf : Field K}.
+Context (E:Set) {Ee : Equiv E} {Eadd : Plus E} {Ezero : Zero E} {Eneg : Negate E} {Eg : AbGroup E}
+    {Emult : ScalarMult K E} {Eh : VectorSpace K E}.
+Variable n : nat.
+Variable S : nat -> E.
+Hypothesis S_finite : forall (k:nat), k>n -> (S k) [=] [0].
+
+(**
+A vector set is linearly dependent if and only if
+$$\exists i \in [[1,n]], e_i \in \mathrm{span}(e_1, ... e_{i-1}, e_{i+1}, e_n)$$.
+We first define the set $$(e_1, ... e_{i-1}, e_{i+1}, e_n)$$.
+*)
+
+Parameter vector_set' : nat -> nat -> E.
+Parameter vector_set'_spec1 : forall (i : nat), vector_set' i i [=] [0].
+Parameter vector_set'_spec2 : forall (i k : nat), i <> k -> (vector_set' i k) [=] (S k).
+
+Lemma linearly_dependence_charac : iff (~ linearly_independent K E n S)
+    (exists (i:nat), i <= n -> (vector_span_prop K E n (vector_set' i)) (S i)).
+Proof.
+    (* TODO *)
+Admitted.
+
+End linearly_dependent.

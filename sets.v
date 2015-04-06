@@ -29,6 +29,7 @@ Variable E:Type.
 We define the union and the intersection of two subsets as follows : 
 - Union : $$A \cup B = \{ x \in E \mid x \in A \lor x \in B \}
 - Intersection : $$A \cap B = \{ x \in E \mid x \in A \land x \in B \}
+- Subset : $$A \subset B$$ if $$\forall x \in A, x \in B$$.
 *)
 
 Section subsets_operations.
@@ -37,6 +38,8 @@ Variable A B C : E -> Prop.
 
 Definition union : E->Prop := fun (x:E) => A x \/ B x.
 Definition inter : E->Prop := fun (x:E) => A x /\ B x.
+
+Definition subset := forall (x:E), A x -> B x.
 
 (**
 At the end of the file (In order to have a global scope), we define the notation

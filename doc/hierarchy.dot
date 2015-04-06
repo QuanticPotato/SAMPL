@@ -4,6 +4,7 @@ digraph g{
 	sets [label="sets.v", shape=box, fillcolor="burlywood", style="filled,rounded"];
 	integers [label="integers.v", shape=box, fillcolor="burlywood", style="filled,rounded"];
 	structures [label="structures.v", shape=box, fillcolor="burlywood", style="filled,rounded"];
+	functors [label="functors.v", shape=box, fillcolor="burlywood", style="filled, rounded"];
 	reals [label="reals.v", shape=box, fillcolor="burlywood", style="filled,rounded"];
 	functions [label="functions.v", shape=box, fillcolor="burlywood", style="filled,rounded"];
 	differentiability [label="differentiability.v", shape=box, fillcolor="burlywood", style="filled,rounded"];
@@ -12,17 +13,22 @@ digraph g{
 	limits [label="limits.v", shape=box, fillcolor="burlywood", style="filled,rounded"];
 	continuity [label="continuity.v", shape=box, fillcolor="burlywood", style="filled,rounded"];
 	arithmetic [label="arithmetic.v", shape=box, fillcolor="burlywood", style="filled,rounded"];
+	vector_spaces [label="vector_spaces.v", shape=box, fillcolor="burlywood", style="filled,rounded"];
+	linear_applications [label="linear_applications.v", shape=box, fillcolor="burlywood", style="filled, rounded"];
 	logic -> lists
 	lists -> sets
 	sets -> integers
 	integers -> structures
-	structures -> reals
-	structures -> arithmetic
+	structures -> functors
+	functors -> reals
+	functors -> arithmetic
 	arithmetic -> polynomials
 	integers -> sequences
 	reals -> sequences
 	sequences -> functions
 	reals -> functions
+	functions -> vector_spaces
+	vector_spaces -> linear_applications
 	functions -> differentiability
 	functions -> limits
 	limits -> continuity

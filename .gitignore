@@ -5,3 +5,4 @@ nlia.cache
 math-classes/*
 .depend
 html/*
+Makefile
